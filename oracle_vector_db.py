@@ -1,0 +1,122 @@
+import time
+import array
+from typing import List, Any, Optional, Dict, Tuple
+from llama_index.vector_stores.types import (
+    VectorStore,
+    VectorStoreQuery,
+    VectorStoreQueryResult,
+)
+from llama_index.schema import TextNode, BaseNode
+
+import oracledb
+
+from config_private import DB_USER, DB_PWD, DB_HOST_IP, DB_SERVICE
+
+
+def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
+    tStart = time.time()
+
+    connection = oracledb.connect(
+        user=DB_USER, password=DB_PWD, dsn=DB_HOST_IP + "/" + DB_SERVICE
+    )
+
+    array_query = array.array("d", embed_query)
+
+    cursor = connection.cursor()
+
+    select = f"""select V.id, C.CHUNK, ROUND(VECTOR_DISTANCE(V.VEC, :1, DOT), 3)
+                as d from VECTORS V, CHUNKS C
+                where C.ID = V.ID
+                order by d
+                FETCH FIRST {top_k} ROWS ONLY"""
+
+    if verbose:
+        print(f"select: {select}")
+
+    cursor.execute(select, [array_query])
+
+    rows = cursor.fetchall()
+
+    result_nodes = []
+    node_ids = []
+    similarities = []
+
+    for row in rows:
+        clob_pointer = row[1]
+        full_clob_data = clob_pointer.read()
+
+        result_nodes.append(TextNode(id_=row[0], text=full_clob_data))
+        node_ids.append(row[0])
+        similarities.append(row[2])
+
+    # free db resources
+    cursor.close()
+    connection.close()
+
+    q_result = VectorStoreQueryResult(
+        nodes=result_nodes, similarities=similarities, ids=node_ids
+    )
+
+    tEla = time.time() - tStart
+
+    if verbose:
+        print(f"Query duration: {round(tEla, 1)} sec.")
+
+    return q_result
+
+
+class OracleVectorStore(VectorStore):
+    """
+    Interface with Oracle DB Vector Store
+
+    """
+
+    stores_text: bool = True
+    verbose: bool = False
+
+    def __init__(self, verbose=False) -> None:
+        """Init params."""
+        self.verbose = verbose
+
+    def get(self, text_id: str) -> List[float]:
+        """Get embedding."""
+        raise NotImplementedError("This feature is not yet implemented")
+
+    def add(
+        self,
+        nodes: List[BaseNode],
+    ) -> List[str]:
+        """Add nodes to index."""
+        raise NotImplementedError("This feature is not yet implemented")
+
+    def delete(self, ref_doc_id: str, **delete_kwargs: Any) -> None:
+        """
+        Delete nodes using with ref_doc_id.
+
+        Args:
+            ref_doc_id (str): The doc_id of the document to delete.
+
+        """
+        raise NotImplementedError("This feature is not yet implemented")
+
+    def query(
+        self,
+        query: VectorStoreQuery,
+        **kwargs: Any,
+    ) -> VectorStoreQueryResult:
+        """Get nodes for response."""
+
+        if self.verbose:
+            print("---> Calling query on DB")
+
+        return oracle_query(
+            query.query_embedding, top_k=query.similarity_top_k, verbose=self.verbose
+        )
+
+    def persist(self, persist_path, fs=None) -> None:
+        """Persist the SimpleVectorStore to a directory.
+
+        NOTE: we are not implementing this for now.
+
+        """
+        raise NotImplementedError("This feature is not yet implemented")
