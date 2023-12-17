@@ -11,7 +11,7 @@ Description:
 Usage:
     Import this module into other scripts to use its functions. 
     Example:
-    from prepare_chain import create_query_engine
+        from prepare_chain import create_query_engine
 
 License:
     This code is released under the MIT License.
@@ -27,9 +27,8 @@ Warnings:
 
 import logging
 
-from typing import List, Any, Optional, Dict, Tuple
+from typing import Optional, Tuple
 from llama_index import VectorStoreIndex, ServiceContext
-from llama_index.schema import TextNode, BaseNode, Document
 
 import ads
 from ads.llm import GenerativeAIEmbeddings, GenerativeAI
@@ -54,7 +53,7 @@ def create_query_engine(verbose=False):
     embed_model = GenerativeAIEmbeddings(
         compartment_id=COMPARTMENT_OCID,
         model=MODEL_NAME,
-        auth=ads.auth.api_keys(oci_config),
+        auth=api_keys_config,
         # Optionally you can specify keyword arguments for the OCI client
         # e.g. service_endpoint.
         client_kwargs={"service_endpoint": ENDPOINT},
@@ -63,7 +62,7 @@ def create_query_engine(verbose=False):
     # this is the custom class to access Oracle DB as Vectore Store
     v_store = OracleVectorStore(verbose=False)
 
-    # thsi si to access OCI GenAI service
+    # this is to access OCI GenAI service
     llm_oci = GenerativeAI(
         compartment_id=COMPARTMENT_OCID,
         max_tokens=1024,
@@ -77,6 +76,8 @@ def create_query_engine(verbose=False):
         vector_store=v_store, service_context=service_context
     )
 
+    # the whole chain (query string -> embed query -> retrieval -> context, query-> GenAI -> response)
+    # is wrapped in the query engine
     query_engine = index.as_query_engine(similarity_top_k=5)
 
     return query_engine
