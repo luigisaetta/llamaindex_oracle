@@ -1,6 +1,8 @@
 # llamaindex_oracle
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
+![screenshot](./screenshot.png)
+
 This repo contains all the work done on the development of RAG applications using:
 * Oracle Vector DB
 * Oracle OCI GenAI Service
@@ -21,7 +23,7 @@ A very good introduction to what **Retrieval Augmented Generation** (RAG) is can
 See the wiki pages.
 
 ## Loading data
-You can use the program [create_save_embeddings](./create_save_embeddings.py) to load all the data in the schema.
+You can use the program [create_save_embeddings](./create_save_embeddings.py) to load all the data in the Oracle DB schema.
 
 You need to have pdf files in the same directory.
 
