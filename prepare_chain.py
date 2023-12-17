@@ -6,7 +6,7 @@ Date last modified: 2023-12-17
 Python Version: 3.9
 
 Description:
-    This module provides a function to initialize the RAG chian 
+    This module provides a function to initialize the RAG chain 
 
 Usage:
     Import this module into other scripts to use its functions. 

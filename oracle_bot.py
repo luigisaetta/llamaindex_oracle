@@ -1,7 +1,28 @@
-#
-# Streamlit App to demo OCI AI GenAI
-# this is the main code, with the UI
-#
+"""
+File name: oracle_bot.py
+Author: Luigi Saetta
+Date created: 2023-12-17
+Date last modified: 2023-12-17
+Python Version: 3.9
+
+Description:
+    This module provides the chatbot UI for the RAG demo 
+
+Usage:
+    run with: streamlit run oracle_bot.py
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is a part of a set of demo showing how to use Oracle Vector DB,
+    OCI GenAI service, Oracle GenAI Embeddings, to buil a RAG solution,
+    where all the data (text + embeddings) are stored in Oracle DB 23c 
+
+Warnings:
+    This module is in development, may change in future versions.
+"""
+
 import streamlit as st
 
 from prepare_chain import create_query_engine
@@ -28,7 +49,8 @@ if "messages" not in st.session_state:
     reset_conversation()
 
 # init RAG
-query_engine = create_query_engine()
+with st.spinner("Initializing RAG chain..."):
+    query_engine = create_query_engine()
 
 
 # Display chat messages from history on app rerun
@@ -46,8 +68,10 @@ if question := st.chat_input("Hello, how can I help you?"):
     # here we call OCI genai...
 
     try:
-        print("...")
-        response = query_engine.query(question)
+        print("Calling RAG chain..")
+
+        with st.spinner("Waiting for answer from AI services..."):
+            response = query_engine.query(question)
 
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
