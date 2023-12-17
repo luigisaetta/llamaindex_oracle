@@ -34,6 +34,7 @@ import ads
 from ads.llm import GenerativeAIEmbeddings, GenerativeAI
 
 from config_private import COMPARTMENT_OCID, ENDPOINT
+from config import EMBED_MODEL
 
 from oci_utils import load_oci_config
 from oracle_vector_db import OracleVectorStore
@@ -45,14 +46,10 @@ def create_query_engine(verbose=False):
     # need to do this way
     api_keys_config = ads.auth.api_keys(oci_config)
 
-    # english, or for other language use: multilingual
-    # beware, this MUST be the same used to create the embeddings stored in the DB
-    MODEL_NAME = "cohere.embed-english-v3.0"
-
     # this is to embed the question
     embed_model = GenerativeAIEmbeddings(
         compartment_id=COMPARTMENT_OCID,
-        model=MODEL_NAME,
+        model=EMBED_MODEL,
         auth=api_keys_config,
         # Optionally you can specify keyword arguments for the OCI client
         # e.g. service_endpoint.

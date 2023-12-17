@@ -43,21 +43,19 @@ import ads
 from ads.llm import GenerativeAIEmbeddings
 
 # this way we don't show & share
-from config_private import DB_USER, DB_PWD, DB_SERVICE, DB_HOST_IP, COMPARTMENT_OCID
+from config_private import (
+    DB_USER,
+    DB_PWD,
+    DB_SERVICE,
+    DB_HOST_IP,
+    COMPARTMENT_OCID,
+    ENDPOINT,
+)
 
 #
 # Configs
 #
-# INPUT_FILES = ["./ambrosetti.pdf"]
-INPUT_FILES = ["./database-concepts.pdf", "oracle-database-23c-new-features-guide.pdf"]
-
-
-# OCI settings
-ENDPOINT = "https://generativeai.aiservice.us-chicago-1.oci.oraclecloud.com"
-
-# english, for other language use: multilingual
-# EMBED_MODEL = "cohere.embed-multilingual-v3.0"
-EMBED_MODEL = "cohere.embed-english-v3.0"
+from config import INPUT_FILES, EMBED_MODEL
 
 # to create embeddings in batch
 BATCH_SIZE = 20
@@ -137,13 +135,15 @@ api_keys_config = ads.auth.api_keys(oci_config)
 
 # load books
 # chunks are pages
+print("Loading books...")
+
 pages_text, pages_id = read_and_split_in_pages(INPUT_FILES)
 
 # create embeddings
 embed_model = GenerativeAIEmbeddings(
     compartment_id=COMPARTMENT_OCID,
     model=EMBED_MODEL,
-    auth=ads.auth.api_keys(oci_config),
+    auth=api_keys_config,
     # Optionally you can specify keyword arguments for the OCI client, e.g. service_endpoint.
     client_kwargs={"service_endpoint": ENDPOINT},
 )
