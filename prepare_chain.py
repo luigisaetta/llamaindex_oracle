@@ -27,20 +27,29 @@ Warnings:
 
 import logging
 
-from typing import Optional, Tuple
 from llama_index import VectorStoreIndex, ServiceContext
+from llama_index.callbacks import CallbackManager
+from tokenizers import Tokenizer
+from llama_index.callbacks import TokenCountingHandler
 
 import ads
 from ads.llm import GenerativeAIEmbeddings, GenerativeAI
 
 from config_private import COMPARTMENT_OCID, ENDPOINT
-from config import EMBED_MODEL
+from config import EMBED_MODEL, TOKENIZER
 
 from oci_utils import load_oci_config
 from oracle_vector_db import OracleVectorStore
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
-def create_query_engine(verbose=False):
+
+def create_query_engine(token_counter=None, verbose=False):
+    logging.info("calling create_query_engine()...")
+
     oci_config = load_oci_config()
 
     # need to do this way
@@ -66,8 +75,15 @@ def create_query_engine(verbose=False):
         client_kwargs={"service_endpoint": ENDPOINT},
     )
 
+    cohere_tokenizer = Tokenizer.from_pretrained(TOKENIZER)
+    token_counter = TokenCountingHandler(tokenizer=cohere_tokenizer.encode)
+
+    callback_manager = CallbackManager([token_counter])
+
     # integrate OCI in llama-index
-    service_context = ServiceContext.from_defaults(llm=llm_oci, embed_model=embed_model)
+    service_context = ServiceContext.from_defaults(
+        llm=llm_oci, embed_model=embed_model, callback_manager=callback_manager
+    )
 
     index = VectorStoreIndex.from_vector_store(
         vector_store=v_store, service_context=service_context
@@ -77,4 +93,4 @@ def create_query_engine(verbose=False):
     # is wrapped in the query engine
     query_engine = index.as_query_engine(similarity_top_k=5)
 
-    return query_engine
+    return query_engine, token_counter

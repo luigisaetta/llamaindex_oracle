@@ -23,9 +23,11 @@ Warnings:
     This module is in development, may change in future versions.
 """
 
+import logging
 import streamlit as st
 
-from prepare_chain import create_query_engine
+# to use the create_query_engine
+import prepare_chain
 
 #
 # Configs
@@ -36,9 +38,25 @@ def reset_conversation():
     st.session_state.messages = []
 
 
+# defined here to avoid import of streamlit in other module
+# cause we need here to use @cache
+@st.cache_resource
+def create_query_engine(verbose=False):
+    query_engine, token_counter = prepare_chain.create_query_engine(verbose=verbose)
+
+    # token_counter keeps track of the num. of tokens
+    return query_engine, token_counter
+
+
 #
 # Main
 #
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 st.title("OCI Bot powered by Generative AI")
 
 # Added reset button
@@ -50,7 +68,9 @@ if "messages" not in st.session_state:
 
 # init RAG
 with st.spinner("Initializing RAG chain..."):
-    query_engine = create_query_engine()
+    # to count token
+    # here we create the query engine
+    query_engine, token_counter = create_query_engine(verbose=False)
 
 
 # Display chat messages from history on app rerun
@@ -68,10 +88,19 @@ if question := st.chat_input("Hello, how can I help you?"):
     # here we call OCI genai...
 
     try:
-        print("Calling RAG chain..")
+        logging.info("Calling RAG chain..")
 
         with st.spinner("Waiting for answer from AI services..."):
             response = query_engine.query(question)
+
+        # display num. of input/output token
+        str_token1 = f"LLM Prompt Tokens: {token_counter.prompt_llm_token_count}"
+        str_token2 = (
+            f"LLM Completion Tokens: {token_counter.completion_llm_token_count}"
+        )
+
+        logging.info(str_token1)
+        logging.info(str_token2)
 
         # Display assistant response in chat message container
         with st.chat_message("assistant"):

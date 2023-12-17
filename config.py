@@ -5,6 +5,7 @@ INPUT_FILES = ["./database-concepts.pdf", "oracle-database-23c-new-features-guid
 # Cohere embed model
 # for english use this one
 EMBED_MODEL = "cohere.embed-english-v3.0"
-
+# used for token counting
+TOKENIZER = "Cohere/command-nightly"
 # for other language (must be consistent when do query)
 # EMBED_MODEL = "cohere.embed-multilingual-v3.0"
