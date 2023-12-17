@@ -10,3 +10,5 @@ This repo contains all the work done on the development of RAG applications usin
 ## Features
 * basic (12/2023) integration between **Oracle DB Vector Store (23c)** and **llama-index**
 
+## Demos
+* [custom_vector_store](./custom_vector_store.ipynb) This NB shows a demo where you can answer to queries on Oracle DB and new features in 23c
