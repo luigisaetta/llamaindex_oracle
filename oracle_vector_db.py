@@ -19,7 +19,7 @@ License:
 
 Notes:
     This is a part of a set of demo showing how to use Oracle Vector DB,
-    OCI GenAI service, Oracle GenAI Embeddings, to buil a RAG solution,
+    OCI GenAI service, Oracle GenAI Embeddings, to build a RAG solution,
     where all he data (text + embeddings) are stored in Oracle DB 23c 
 
 Warnings:
@@ -28,7 +28,7 @@ Warnings:
 
 import time
 import array
-from typing import List, Any, Optional, Dict, Tuple
+from typing import List, Any, Tuple
 from llama_index.vector_stores.types import (
     VectorStore,
     VectorStoreQuery,
@@ -107,7 +107,7 @@ def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
     tEla = time.time() - tStart
 
     if verbose:
-        print(f"Query duration: {round(tEla, 1)} sec.")
+        logging.info(f"Query duration: {round(tEla, 1)} sec.")
 
     return q_result
 
@@ -120,6 +120,7 @@ class OracleVectorStore(VectorStore):
 
     stores_text: bool = True
     verbose: bool = False
+    DSN = DB_HOST_IP + "/" + DB_SERVICE
 
     def __init__(self, verbose=False) -> None:
         """Init params."""
@@ -127,7 +128,32 @@ class OracleVectorStore(VectorStore):
 
     def get(self, text_id: str) -> List[float]:
         """Get embedding."""
-        raise NotImplementedError("This feature is not yet implemented")
+        try:
+            with oracledb.connect(
+                user=DB_USER, password=DB_PWD, dsn=self.DSN
+            ) as connection:
+                with connection.cursor() as cursor:
+                    select = f"""select V.id, V.vec
+                            from VECTORS V
+                            where V.id = :1"""
+
+                    cursor.execute(select, [text_id])
+
+                    # expected 0 or 1 row
+                    row = cursor.fetchone()
+
+                    if row:
+                        embed_vec = row[1]
+                    else:
+                        # empty list, is OK?
+                        embed_vec = []
+
+            return list(embed_vec)
+
+        except Exception as e:
+            logging.error(f"Error occurred in get: {e}")
+
+            return None
 
     def add(
         self,
@@ -154,7 +180,7 @@ class OracleVectorStore(VectorStore):
         """Get nodes for response."""
 
         if self.verbose:
-            print("---> Calling query on DB")
+            logging.info("---> Calling query on DB")
 
         return oracle_query(
             query.query_embedding, top_k=query.similarity_top_k, verbose=self.verbose

@@ -20,7 +20,7 @@ License:
 
 Notes:
     This is a part of a set of demo showing how to use Oracle Vector DB,
-    OCI GenAI service, Oracle GenAI Embeddings, to buil a RAG solution,
+    OCI GenAI service, Oracle GenAI Embeddings, to build a RAG solution,
     where all he data (text + embeddings) are stored in Oracle DB 23c 
 
 Warnings:
