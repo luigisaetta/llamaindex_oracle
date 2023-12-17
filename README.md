@@ -17,6 +17,11 @@ This repo contains all the work done on the development of RAG applications usin
 ## Setup
 See the wiki pages.
 
+## Loading data
+You can use the program **create_and_save_embeddings.py** to load all the data in the schema.
+
+You need to have pdf files in the same directory.
+
 ## Limited Availability
 OCI GenAI and Oracle Vector DB are new features both in **Limited Availability**. Customers can easily enter in the LA programs.
 To test these functionalities you need to enrol in the LA programs and install the proper versions of software libreraies.
