@@ -21,6 +21,17 @@ logging.basicConfig(
 
 
 def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
+    """
+    Executes a query against an Oracle database to find the top_k closest vectors to the given embedding.
+
+    Args:
+        embed_query (List[float]): A list of floats representing the query vector embedding.
+        top_k (int, optional): The number of closest vectors to retrieve. Defaults to 2.
+        verbose (bool, optional): If set to True, additional information about the query and execution time will be printed. Defaults to False.
+
+    Returns:
+        VectorStoreQueryResult: Object containing the query results, including nodes, similarities, and ids.
+    """
     tStart = time.time()
 
     DSN = DB_HOST_IP + "/" + DB_SERVICE
