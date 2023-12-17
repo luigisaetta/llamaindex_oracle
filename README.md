@@ -34,3 +34,6 @@ Code and functionalities can change, as a result of the feedbacks from customers
 * OCI ADS 2.9.1
 * Oracle Database 23c free edition with Vector DB
 
+## Libraries
+* Streamlit
+** Llama-index
