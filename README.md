@@ -18,6 +18,7 @@ A very good introduction to what **Retrieval Augmented Generation** (RAG) is can
 
 ## Demos
 * [custom_vector_store](./custom_vector_store.ipynb) This NB shows a demo where you get answers to questions on Oracle Database and new features in 23c
+* Bot powered by Vector DB and OCI GenAI
 
 ## Setup
 See the wiki pages.
@@ -28,8 +29,11 @@ You can use the program [create_save_embeddings](./create_save_embeddings.py) to
 You need to have pdf files in the same directory.
 
 ## Limited Availability
-OCI GenAI and Oracle Vector DB are new features both in **Limited Availability**. Customers can easily enter in the LA programs.
-To test these functionalities you need to enrol in the LA programs and install the proper versions of software libreraies.
+OCI GenAI and Oracle Vector DB are new features both in **Limited Availability**. 
+
+Customers can easily enter in the LA programs.
+To test these functionalities you need to enrol in the LA programs and install the proper versions of software libraries.
+
 Code and functionalities can change, as a result of the feedbacks from customers.
 
 ## Release used for the demo (WIP)
@@ -38,4 +42,4 @@ Code and functionalities can change, as a result of the feedbacks from customers
 
 ## Libraries
 * Streamlit
-** Llama-index
+* Llama-index
