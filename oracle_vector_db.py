@@ -9,49 +9,57 @@ from llama_index.vector_stores.types import (
 from llama_index.schema import TextNode, BaseNode
 
 import oracledb
+import logging
 
+# load configs from here
 from config_private import DB_USER, DB_PWD, DB_HOST_IP, DB_SERVICE
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
     tStart = time.time()
 
-    connection = oracledb.connect(
-        user=DB_USER, password=DB_PWD, dsn=DB_HOST_IP + "/" + DB_SERVICE
-    )
+    DSN = DB_HOST_IP + "/" + DB_SERVICE
 
-    array_query = array.array("d", embed_query)
+    try:
+        with oracledb.connect(user=DB_USER, password=DB_PWD, dsn=DSN) as connection:
+            with connection.cursor() as cursor:
+                array_query = array.array("d", embed_query)
 
-    cursor = connection.cursor()
+                select = f"""select V.id, C.CHUNK, ROUND(VECTOR_DISTANCE(V.VEC, :1, DOT), 3)
+                            as d from VECTORS V, CHUNKS C
+                            where C.ID = V.ID
+                            order by d
+                            FETCH FIRST {top_k} ROWS ONLY"""
 
-    select = f"""select V.id, C.CHUNK, ROUND(VECTOR_DISTANCE(V.VEC, :1, DOT), 3)
-                as d from VECTORS V, CHUNKS C
-                where C.ID = V.ID
-                order by d
-                FETCH FIRST {top_k} ROWS ONLY"""
+                if verbose:
+                    print(f"select: {select}")
 
-    if verbose:
-        print(f"select: {select}")
+                cursor.execute(select, [array_query])
 
-    cursor.execute(select, [array_query])
+                rows = cursor.fetchall()
 
-    rows = cursor.fetchall()
+                result_nodes = []
+                node_ids = []
+                similarities = []
 
-    result_nodes = []
-    node_ids = []
-    similarities = []
+                # prepare output
+                for row in rows:
+                    clob_pointer = row[1]
+                    full_clob_data = clob_pointer.read()
 
-    for row in rows:
-        clob_pointer = row[1]
-        full_clob_data = clob_pointer.read()
+                    result_nodes.append(TextNode(id_=row[0], text=full_clob_data))
+                    node_ids.append(row[0])
+                    similarities.append(row[2])
 
-        result_nodes.append(TextNode(id_=row[0], text=full_clob_data))
-        node_ids.append(row[0])
-        similarities.append(row[2])
+    except Exception as e:
+        logging.error(f"Error occurred in oracle_query: {e}")
 
-    # free db resources
-    cursor.close()
-    connection.close()
+        return None
 
     q_result = VectorStoreQueryResult(
         nodes=result_nodes, similarities=similarities, ids=node_ids
