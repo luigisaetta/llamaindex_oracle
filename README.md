@@ -14,6 +14,9 @@ This repo contains all the work done on the development of RAG applications usin
 ## Demos
 * [custom_vector_store](./custom_vector_store.ipynb) This NB shows a demo where you get answers to questions on Oracle Database and new features in 23c
 
+## Setup
+See the wiki pages.
+
 ## Limited Availability
 OCI GenAI and Oracle Vector DB are new features both in **Limited Availability**. Customers can easily enter in the LA programs.
 To test these functionalities you need to enrol in the LA programs and install the proper versions of software libreraies.
