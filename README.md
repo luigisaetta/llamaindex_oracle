@@ -8,6 +8,9 @@ This repo contains all the work done on the development of RAG applications usin
 * OCI ADS 2.9.1 (with support for OCI GenAI)
 * llama-index
 
+## What is RAG?
+A very good introduction to what RAG is can be found [here](https://www.oracle.com/artificial-intelligence/generative-ai/retrieval-augmented-generation-rag/)
+
 ## Features
 * basic (12/2023) integration between **Oracle DB Vector Store (23c)** and **llama-index**
 
