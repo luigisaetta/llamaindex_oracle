@@ -30,6 +30,7 @@ Warnings:
 """
 
 import time
+from tqdm import tqdm
 import array
 from typing import List, Any, Tuple, Dict
 from llama_index.vector_stores.types import (
@@ -115,6 +116,26 @@ def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
     return q_result
 
 
+def save_embeddings_in_db(embeddings, pages_id, connection):
+    with connection.cursor() as cursor:
+        logging.info("Saving embeddings to DB...")
+
+        for id, vector in zip(tqdm(pages_id), embeddings):
+            # to handle 64 bit correctly
+            input_array = array.array("d", vector)
+
+            cursor.execute("insert into VECTORS values (:1, :2)", [id, input_array])
+
+
+def save_chunks_in_db(pages_text, pages_id, connection):
+    with connection.cursor() as cursor:
+        logging.info("Saving texts to DB...")
+        cursor.setinputsizes(None, oracledb.DB_TYPE_CLOB)
+
+        for id, text in zip(tqdm(pages_id), pages_text):
+            cursor.execute("insert into CHUNKS values (:1, :2)", [id, text])
+
+
 class OracleVectorStore(VectorStore):
     """
     Interface with Oracle DB Vector Store
@@ -139,8 +160,13 @@ class OracleVectorStore(VectorStore):
         nodes: List[BaseNode],
     ) -> List[str]:
         """Add nodes to index."""
+        ids_list = []
         for node in nodes:
+            # the node contains already the embedding
             self.node_dict[node.node_id] = node
+            ids_list.append(node.id_)
+
+        return ids_list
 
     def delete(self, node_id: str, **delete_kwargs: Any) -> None:
         """
@@ -150,7 +176,7 @@ class OracleVectorStore(VectorStore):
             ref_doc_id (str): The doc_id of the document to delete.
 
         """
-        del self.node_dict[node_id]
+        raise NotImplementedError("Delete not yet implemented for Oracle Vector Store.")
 
     def query(
         self,
@@ -166,10 +192,34 @@ class OracleVectorStore(VectorStore):
             query.query_embedding, top_k=query.similarity_top_k, verbose=self.verbose
         )
 
-    def persist(self, persist_path, fs=None) -> None:
+    def persist(self, persist_path=None, fs=None) -> None:
         """Persist the SimpleVectorStore to a directory.
 
         NOTE: we are not implementing this for now.
 
         """
-        raise NotImplementedError("This feature is not yet implemented")
+
+        if self.node_dict:
+            # not empty, persist
+            logging.info("Persisting to DB...")
+
+            embeddings = []
+            pages_id = []
+            pages_text = []
+
+            for key, node in self.node_dict.items():
+                pages_id.append(node.id_)
+                pages_text.append(node.text)
+                embeddings.append(node.embedding)
+
+            with oracledb.connect(
+                user=DB_USER, password=DB_PWD, dsn=self.DSN
+            ) as connection:
+                save_embeddings_in_db(embeddings, pages_id, connection)
+
+                save_chunks_in_db(pages_text, pages_id, connection)
+
+                connection.commit()
+
+            # after persisting empty the cache
+            self.node_dict = {}
