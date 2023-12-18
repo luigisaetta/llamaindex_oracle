@@ -31,6 +31,7 @@ import logging
 import re
 from tqdm import tqdm
 import array
+import numpy as np
 
 import oci
 
@@ -144,8 +145,6 @@ def save_embeddings_in_db(embeddings, pages_id, connection):
             input_array = array.array("d", vector)
 
             cursor.execute("insert into VECTORS values (:1, :2)", [id, input_array])
-            # moved in the loop to save resource in the db... can be slower
-            connection.commit()
 
 
 def save_chunks_in_db(pages_text, pages_id, connection):
@@ -155,7 +154,6 @@ def save_chunks_in_db(pages_text, pages_id, connection):
 
         for id, text in zip(tqdm(pages_id), pages_text):
             cursor.execute("insert into CHUNKS values (:1, :2)", [id, text])
-            connection.commit()
 
 
 #
@@ -188,21 +186,6 @@ embed_model = GenerativeAIEmbeddings(
     client_kwargs={"service_endpoint": ENDPOINT},
 )
 
-# load books
-# chunks are pages
-logging.info("Loading books...")
-
-pages_text, pages_id = read_and_split_in_pages(INPUT_FILES)
-
-# create embeddings
-
-# process in batch (max 96 for batch, chosen BATCH_SIZE, see above)
-logging.info("Computing embeddings...")
-
-embeddings = compute_embeddings(embed_model, pages_text)
-
-# save in DB
-
 # connect to db
 logging.info("Connecting to Oracle DB...")
 
@@ -211,23 +194,39 @@ DSN = DB_HOST_IP + "/" + DB_SERVICE
 with oracledb.connect(user=DB_USER, password=DB_PWD, dsn=DSN) as connection:
     logging.info("Successfully connected to Oracle Database...")
 
-    # store embeddings
-    # here we save in DB
-    save_embeddings_in_db(embeddings, pages_id, connection)
+    num_pages = []
+    for book in INPUT_FILES:
+        logging.info(f"Processing book: {book}...")
+        # chunks are pages
+        pages_text, pages_id = read_and_split_in_pages([book])
+        num_pages.append(len(pages_text))
 
-    logging.info("Save embeddings OK...")
+        # create embeddings
+        # process in batch (max 96 for batch, chosen BATCH_SIZE, see above)
+        logging.info("Computing embeddings...")
 
-    # store text chunks (pages for now)
-    save_chunks_in_db(pages_text, pages_id, connection)
+        embeddings = compute_embeddings(embed_model, pages_text)
 
-    logging.info("Save texts OK...")
+        # store embeddings
+        # here we save in DB
+        save_embeddings_in_db(embeddings, pages_id, connection)
+
+        logging.info("Save embeddings OK...")
+
+        # store text chunks (pages for now)
+        save_chunks_in_db(pages_text, pages_id, connection)
+
+        # a tx is a book
+        connection.commit()
+
+        logging.info("Save texts OK...")
 
     # end !!!
-
+    tot_pages = np.sum(np.array(num_pages))
 
 print("")
 print("Processing done !!!")
 print(
-    f"We have processed {len(pages_text)} pages and saved text chunks and embeddings in the DB"
+    f"We have processed {tot_pages} pages and saved text chunks and embeddings in the DB"
 )
 print()
