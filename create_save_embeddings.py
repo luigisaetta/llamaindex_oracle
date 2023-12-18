@@ -135,6 +135,29 @@ def compute_embeddings(embed_model, pages_text):
     return embeddings
 
 
+def save_embeddings_in_db(embeddings, pages_id, connection):
+    with connection.cursor() as cursor:
+        logging.info("Saving embeddings to DB...")
+
+        for id, vector in zip(tqdm(pages_id), embeddings):
+            # to handle 64 bit correctly
+            input_array = array.array("d", vector)
+
+            cursor.execute("insert into VECTORS values (:1, :2)", [id, input_array])
+            # moved in the loop to save resource in the db... can be slower
+            connection.commit()
+
+
+def save_chunks_in_db(pages_text, pages_id, connection):
+    with connection.cursor() as cursor:
+        logging.info("Saving texts to DB...")
+        cursor.setinputsizes(None, oracledb.DB_TYPE_CLOB)
+
+        for id, text in zip(tqdm(pages_id), pages_text):
+            cursor.execute("insert into CHUNKS values (:1, :2)", [id, text])
+            connection.commit()
+
+
 #
 # Main
 #
@@ -156,13 +179,7 @@ oci_config = load_oci_config()
 # need to do this way
 api_keys_config = ads.auth.api_keys(oci_config)
 
-# load books
-# chunks are pages
-logging.info("Loading books...")
-
-pages_text, pages_id = read_and_split_in_pages(INPUT_FILES)
-
-# create embeddings
+# the embedding client
 embed_model = GenerativeAIEmbeddings(
     compartment_id=COMPARTMENT_OCID,
     model=EMBED_MODEL,
@@ -171,6 +188,13 @@ embed_model = GenerativeAIEmbeddings(
     client_kwargs={"service_endpoint": ENDPOINT},
 )
 
+# load books
+# chunks are pages
+logging.info("Loading books...")
+
+pages_text, pages_id = read_and_split_in_pages(INPUT_FILES)
+
+# create embeddings
 
 # process in batch (max 96 for batch, chosen BATCH_SIZE, see above)
 logging.info("Computing embeddings...")
@@ -188,30 +212,13 @@ with oracledb.connect(user=DB_USER, password=DB_PWD, dsn=DSN) as connection:
     logging.info("Successfully connected to Oracle Database...")
 
     # store embeddings
-    with connection.cursor() as cursor:
-        logging.info("Saving embeddings to DB...")
-        i = 0
-        for id, vector in zip(tqdm(pages_id), embeddings):
-            i += 1
-            # to handle 64 bit correctly
-            input_array = array.array("d", vector)
-
-            cursor.execute("insert into VECTORS values (:1, :2)", [id, input_array])
-            # moved in the loop to save resource in the db... can be slower
-            connection.commit()
+    # here we save in DB
+    save_embeddings_in_db(embeddings, pages_id, connection)
 
     logging.info("Save embeddings OK...")
 
     # store text chunks (pages for now)
-    with connection.cursor() as cursor:
-        cursor.setinputsizes(None, oracledb.DB_TYPE_CLOB)
-
-        logging.info("Saving chunks to DB...")
-        i = 0
-        for id, text in zip(tqdm(pages_id), pages_text):
-            i += 1
-            cursor.execute("insert into CHUNKS values (:1, :2)", [id, text])
-            connection.commit()
+    save_chunks_in_db(pages_text, pages_id, connection)
 
     logging.info("Save texts OK...")
 
