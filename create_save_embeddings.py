@@ -27,8 +27,8 @@ Warnings:
     This module is in development, may change in future versions.
 """
 
+import logging
 import re
-import numpy as np
 from tqdm import tqdm
 import array
 
@@ -97,6 +97,7 @@ def read_and_split_in_pages(input_files):
 
 
 # some simple text preprocessing
+# TODO: this function must be customized to fit your pdf
 def preprocess_text(text):
     text = text.replace("\t", " ")
     text = text.replace(" -\n", "")
@@ -120,12 +121,34 @@ def remove_short_pages(pages, threshold):
     return pages
 
 
+# take the list of txts and return a list of embeddings vector
+def compute_embeddings(embed_model, pages_text):
+    embeddings = []
+    for i in tqdm(range(0, len(pages_text), BATCH_SIZE)):
+        batch = pages_text[i : i + BATCH_SIZE]
+
+        # here we compute embeddings for a batch
+        embeddings_batch = embed_model.embed_documents(batch)
+        # add to the final list
+        embeddings.extend(embeddings_batch)
+
+    return embeddings
+
+
 #
 # Main
 #
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 print("")
 print("Start processing...")
+print("")
+
+print(f"List of books: {INPUT_FILES}")
 print("")
 
 oci_config = load_oci_config()
@@ -135,7 +158,7 @@ api_keys_config = ads.auth.api_keys(oci_config)
 
 # load books
 # chunks are pages
-print("Loading books...")
+logging.info("Loading books...")
 
 pages_text, pages_id = read_and_split_in_pages(INPUT_FILES)
 
@@ -148,67 +171,56 @@ embed_model = GenerativeAIEmbeddings(
     client_kwargs={"service_endpoint": ENDPOINT},
 )
 
-embeddings = []
 
-# to process in batch (max 96 for batch)
-print("Computing embeddings...")
+# process in batch (max 96 for batch, chosen BATCH_SIZE, see above)
+logging.info("Computing embeddings...")
 
-for i in tqdm(range(0, len(pages_text), BATCH_SIZE)):
-    batch = pages_text[i : i + BATCH_SIZE]
-
-    embeddings_batch = embed_model.embed_documents(batch)
-    # add to the final list
-    embeddings.extend(embeddings_batch)
+embeddings = compute_embeddings(embed_model, pages_text)
 
 # save in DB
 
 # connect to db
-print("Connecting to Oracle DB...")
+logging.info("Connecting to Oracle DB...")
 
-connection = oracledb.connect(
-    user=DB_USER, password=DB_PWD, dsn=DB_HOST_IP + "/" + DB_SERVICE
-)
+DSN = DB_HOST_IP + "/" + DB_SERVICE
 
-print("Successfully connected to Oracle Database...")
+with oracledb.connect(user=DB_USER, password=DB_PWD, dsn=DSN) as connection:
+    logging.info("Successfully connected to Oracle Database...")
 
-# store embeddings
-cursor = connection.cursor()
+    # store embeddings
+    with connection.cursor() as cursor:
+        logging.info("Saving embeddings to DB...")
+        i = 0
+        for id, vector in zip(tqdm(pages_id), embeddings):
+            i += 1
+            # to handle 64 bit correctly
+            input_array = array.array("d", vector)
 
-print("Saving embeddings to DB...")
-i = 0
-for id, vector in zip(tqdm(pages_id), embeddings):
-    i += 1
-    # to handle 64 bit corrctly
-    input_array = array.array("d", vector)
+            cursor.execute("insert into VECTORS values (:1, :2)", [id, input_array])
+            # moved in the loop to save resource in the db... can be slower
+            connection.commit()
 
-    cursor.execute("insert into VECTORS values (:1, :2)", [id, input_array])
-    # moved in the loop to save resource in the db... can be slower
-    connection.commit()
-cursor.close()
+    logging.info("Save embeddings OK...")
 
-print("Save OK...")
+    # store text chunks (pages for now)
+    with connection.cursor() as cursor:
+        cursor.setinputsizes(None, oracledb.DB_TYPE_CLOB)
 
-# store text chunks (pages for now)
-cursor = connection.cursor()
+        logging.info("Saving chunks to DB...")
+        i = 0
+        for id, text in zip(tqdm(pages_id), pages_text):
+            i += 1
+            cursor.execute("insert into CHUNKS values (:1, :2)", [id, text])
+            connection.commit()
 
-cursor.setinputsizes(None, oracledb.DB_TYPE_CLOB)
+    logging.info("Save texts OK...")
 
-print("Saving chunks to DB...")
-i = 0
-for id, text in zip(tqdm(pages_id), pages_text):
-    i += 1
-    cursor.execute("insert into CHUNKS values (:1, :2)", [id, text])
-    connection.commit()
-cursor.close()
+    # end !!!
 
-print("Save OK...")
-
-# end !!!
-connection.close()
 
 print("")
 print("Processing done !!!")
 print(
-    f"We have processed {len(pages_text)} pages and saved chunks and embeddings in the DB"
+    f"We have processed {len(pages_text)} pages and saved text chunks and embeddings in the DB"
 )
 print()
