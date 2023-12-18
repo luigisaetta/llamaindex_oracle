@@ -26,9 +26,9 @@ See the wiki pages.
 ## Loading data
 You can use the program [create_save_embeddings](./create_save_embeddings.py) to load all the data in the Oracle DB schema.
 
-You can launch it using the script [load_data](./load_data.sh).
+You can launch it using the script [load_books](./load_books.sh).
 
-The list of files is psecified in config.py
+The list of files is specified in config.py
 
 You need to have pdf files in the same directory.
 
