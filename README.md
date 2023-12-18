@@ -17,7 +17,7 @@ A very good introduction to what **Retrieval Augmented Generation** (RAG) is can
 * basic (12/2023) integration between **Oracle DB Vector Store (23c)** and **llama-index**
 
 ## Demos
-* [custom_vector_store](./custom_vector_store.ipynb) This NB shows a demo where you get answers to questions on Oracle Database and new features in 23c
+* [custom_vector_store_demo1](./custom_vector_store_demo1.ipynb) This NB shows a demo where you get answers to questions on Oracle Database and new features in 23c
 * Bot powered by Vector DB and OCI GenAI
 
 ## Setup
