@@ -2,7 +2,7 @@
 File name: oracle_bot.py
 Author: Luigi Saetta
 Date created: 2023-12-17
-Date last modified: 2023-12-17
+Date last modified: 2023-12-18
 Python Version: 3.9
 
 Description:
@@ -68,7 +68,11 @@ if "messages" not in st.session_state:
 
 # init RAG
 with st.spinner("Initializing RAG chain..."):
-    # to count token
+    # I have added the token counter to count token
+    # I've done this way because I marked the function with @cache
+    # but there was a problem with the counter. It works if it is created in the other module
+    # and returned here where I print the results for each query
+
     # here we create the query engine
     query_engine, token_counter = create_query_engine(verbose=False)
 
@@ -94,6 +98,7 @@ if question := st.chat_input("Hello, how can I help you?"):
             response = query_engine.query(question)
 
         # display num. of input/output token
+        # count are incrementals
         str_token1 = f"LLM Prompt Tokens: {token_counter.prompt_llm_token_count}"
         str_token2 = (
             f"LLM Completion Tokens: {token_counter.completion_llm_token_count}"
@@ -110,4 +115,5 @@ if question := st.chat_input("Hello, how can I help you?"):
         st.session_state.messages.append({"role": "assistant", "content": response})
 
     except Exception as e:
+        logging.error("An error occurred: " + str(e))
         st.error("An error occurred: " + str(e))

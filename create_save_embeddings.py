@@ -2,7 +2,7 @@
 File name: create_save_embeddings.py
 Author: Luigi Saetta
 Date created: 2023-12-14
-Date last modified: 2023-12-17
+Date last modified: 2023-12-18
 Python Version: 3.9
 
 Description:
