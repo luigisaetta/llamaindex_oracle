@@ -7,7 +7,10 @@ Python Version: 3.9
 
 Description:
     This module provides the class to integrate Oracle Vector DB 
-    as Vector Store in llama-index 
+    as Vector Store in llama-index
+
+Inspired by:
+    https://docs.llamaindex.ai/en/stable/examples/low_level/vector_store.html
 
 Usage:
     Import this module into other scripts to use its functions. 
@@ -28,7 +31,7 @@ Warnings:
 
 import time
 import array
-from typing import List, Any, Tuple
+from typing import List, Any, Tuple, Dict
 from llama_index.vector_stores.types import (
     VectorStore,
     VectorStoreQuery,
@@ -126,43 +129,20 @@ class OracleVectorStore(VectorStore):
         """Init params."""
         self.verbose = verbose
 
-    def get(self, text_id: str) -> List[float]:
-        """Get embedding."""
-        try:
-            with oracledb.connect(
-                user=DB_USER, password=DB_PWD, dsn=self.DSN
-            ) as connection:
-                with connection.cursor() as cursor:
-                    select = f"""select V.id, V.vec
-                            from VECTORS V
-                            where V.id = :1"""
+        # initialize the cache
+        self.node_dict: Dict[str, BaseNode] = {}
 
-                    cursor.execute(select, [text_id])
-
-                    # expected 0 or 1 row
-                    row = cursor.fetchone()
-
-                    if row:
-                        embed_vec = row[1]
-                    else:
-                        # empty list, is OK?
-                        embed_vec = []
-
-            return list(embed_vec)
-
-        except Exception as e:
-            logging.error(f"Error occurred in get: {e}")
-
-            return None
+    # get method is NOT needed
 
     def add(
         self,
         nodes: List[BaseNode],
     ) -> List[str]:
         """Add nodes to index."""
-        raise NotImplementedError("This feature is not yet implemented")
+        for node in nodes:
+            self.node_dict[node.node_id] = node
 
-    def delete(self, ref_doc_id: str, **delete_kwargs: Any) -> None:
+    def delete(self, node_id: str, **delete_kwargs: Any) -> None:
         """
         Delete nodes using with ref_doc_id.
 
@@ -170,7 +150,7 @@ class OracleVectorStore(VectorStore):
             ref_doc_id (str): The doc_id of the document to delete.
 
         """
-        raise NotImplementedError("This feature is not yet implemented")
+        del self.node_dict[node_id]
 
     def query(
         self,
