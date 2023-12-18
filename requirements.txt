@@ -99,11 +99,9 @@ nest-asyncio==1.5.8
 nltk==3.8.1
 notebook_shim==0.2.3
 numpy==1.26.2
-oci @ file:///Users/lsaetta/Downloads/oci-2.112.1%2Bpreview.1.1649-py3-none-any.whl#sha256=f2b834774aa5c053f9ef8aa2d4c3094ea4047e1c57a1498a2c9b1751408675a8
 ocifs==1.3.0
 openai==1.4.0
 oracle_ads==2.9.1
-oracledb @ file:///Users/lsaetta/Progetti/vector_demo/oracledb-2.0.0.dev20231121-cp39-cp39-macosx_10_9_universal2.whl#sha256=862a10aba5490bd91d2b122d7ea750d25c6c7d995ab5496087a2a8a01a02ef10
 overrides==7.4.0
 packaging==23.2
 pandas==2.0.3
