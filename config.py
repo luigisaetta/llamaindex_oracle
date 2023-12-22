@@ -1,6 +1,39 @@
+"""
+File name: config.py
+Author: Luigi Saetta
+Date created: 2023-12-15
+Date last modified: 2023-12-22
+Python Version: 3.9
+
+Description:
+    This module provides some configurations
+
+
+Usage:
+    Import this module into other scripts to use its functions. 
+    Example:
+    ...
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is a part of a set of demo showing how to use Oracle Vector DB,
+    OCI GenAI service, Oracle GenAI Embeddings, to build a RAG solution,
+    where all he data (text + embeddings) are stored in Oracle DB 23c 
+
+Warnings:
+    This module is in development, may change in future versions.
+"""
+
 # the book we're going to split and embed
 # INPUT_FILES = ["./ambrosetti.pdf"]
-INPUT_FILES = ["database-concepts.pdf", "oracle-database-23c-new-features-guide.pdf"]
+INPUT_FILES = [
+    "database-concepts.pdf",
+    "oracle-database-23c-new-features-guide.pdf",
+    "CurrentEssentialsofMedicine.pdf",
+    "python4everybody.pdf",
+]
 # INPUT_FILES = ["./python4everybody.pdf"]
 
 # Cohere embeddings model

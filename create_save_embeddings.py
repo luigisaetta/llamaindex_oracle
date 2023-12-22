@@ -32,6 +32,7 @@ import re
 from tqdm import tqdm
 import array
 import numpy as np
+
 # to generate id from text
 import hashlib
 
@@ -125,7 +126,6 @@ def preprocess_text(text):
 
 # remove pages with num words < threshold
 def remove_short_pages(pages, threshold):
-    
     n_removed = 0
     for pag in pages:
         if len(pag.text.split(" ")) < threshold:
@@ -162,17 +162,43 @@ def save_embeddings_in_db(embeddings, pages_id, connection):
             else:
                 # 32 bits
                 input_array = array.array("f", vector)
-            
+
             cursor.execute("insert into VECTORS values (:1, :2)", [id, input_array])
 
 
-def save_chunks_in_db(pages_text, pages_id, connection):
+def save_chunks_in_db(pages_text, pages_id, book_id, connection):
     with connection.cursor() as cursor:
         logging.info("Saving texts to DB...")
         cursor.setinputsizes(None, oracledb.DB_TYPE_CLOB)
 
         for id, text in zip(tqdm(pages_id), pages_text):
-            cursor.execute("insert into CHUNKS values (:1, :2)", [id, text])
+            cursor.execute(
+                "insert into CHUNKS (ID, CHUNK, BOOK_ID) values (:1, :2, :3)",
+                [id, text, book_id],
+            )
+
+
+def register_book(book_name, connection):
+    with connection.cursor() as cursor:
+        # get the new key
+        cursor.execute("SELECT MAX(ID) FROM BOOKS")
+
+        # Fetch the result
+        row = cursor.fetchone()
+
+        if row[0] is not None:
+            new_key = row[0] + 1
+        else:
+            new_key = 1
+
+    # insert the record for the book
+    with connection.cursor() as cursor:
+        query = "INSERT INTO BOOKS (ID, NAME) VALUES (:1, :2)"
+
+        # Execute the query with your values
+        cursor.execute(query, [new_key, book_name])
+
+    return new_key
 
 
 #
@@ -189,8 +215,9 @@ print("Start processing...")
 print("")
 print("List of books to be loaded and indexed:")
 
+# print list of book to be loaded
 for book_name in INPUT_FILES:
-      print(book_name)
+    print(book_name)
 print("")
 
 oci_config = load_oci_config()
@@ -228,6 +255,9 @@ with oracledb.connect(user=DB_USER, password=DB_PWD, dsn=DSN) as connection:
 
         embeddings = compute_embeddings(embed_model, pages_text)
 
+        # determine book_id and save in table BOOKS
+        book_id = register_book(book, connection)
+
         # store embeddings
         # here we save in DB
         save_embeddings_in_db(embeddings, pages_id, connection)
@@ -235,7 +265,7 @@ with oracledb.connect(user=DB_USER, password=DB_PWD, dsn=DSN) as connection:
         logging.info("Save embeddings OK...")
 
         # store text chunks (pages for now)
-        save_chunks_in_db(pages_text, pages_id, connection)
+        save_chunks_in_db(pages_text, pages_id, book_id, connection)
 
         # a tx is a book
         connection.commit()
