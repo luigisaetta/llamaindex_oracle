@@ -2,7 +2,7 @@
 File name: create_save_embeddings.py
 Author: Luigi Saetta
 Date created: 2023-12-14
-Date last modified: 2023-12-18
+Date last modified: 2023-12-22
 Python Version: 3.9
 
 Description:
@@ -11,9 +11,9 @@ Description:
     Create embeddings with OCI GenAI, Cohere V3 and loads in Oracle Vector DB
 
 Usage:
-    Import this module into other scripts to use its functions. 
+    The programs takes all the config from config.py (and secrets from config_private.py)
     Example:
-    ...
+        python create_save_embeddings.py
 
 License:
     This code is released under the MIT License.
@@ -27,6 +27,7 @@ Warnings:
     This module is in development, may change in future versions.
 """
 
+import sys
 import logging
 import re
 from tqdm import tqdm
@@ -56,7 +57,7 @@ from config_private import (
 #
 # Configs
 #
-from config import INPUT_FILES, EMBED_MODEL
+from config import INPUT_FILES, EMBED_MODEL, EMBEDDINGS_BITS
 
 # to create embeddings in batch
 BATCH_SIZE = 20
@@ -79,7 +80,7 @@ def load_oci_config():
 def read_and_split_in_pages(input_files):
     pages = SimpleDirectoryReader(input_files=input_files).load_data()
 
-    print(f"Read total {len(pages)} pages...")
+    logging.info(f"Read total {len(pages)} pages...")
 
     # preprocess text
     for doc in pages:
@@ -105,8 +106,6 @@ def preprocess_text(text):
     text = text.replace("-\n", "")
     text = text.replace("\n", " ")
 
-    # remove copyright
-    text = text.replace("© The European House - Ambrosetti", " ")
     # remove repeated blanks
     text = re.sub(r"\s+", " ", text)
 
@@ -115,9 +114,14 @@ def preprocess_text(text):
 
 # remove pages with num words < threshold
 def remove_short_pages(pages, threshold):
+    
+    n_removed = 0
     for pag in pages:
         if len(pag.text.split(" ")) < threshold:
             pages.remove(pag)
+            n_removed += 1
+
+    logging.info(f"Removed {n_removed} short pages...")
 
     return pages
 
@@ -141,9 +145,13 @@ def save_embeddings_in_db(embeddings, pages_id, connection):
         logging.info("Saving embeddings to DB...")
 
         for id, vector in zip(tqdm(pages_id), embeddings):
-            # to handle 64 bit correctly
-            input_array = array.array("d", vector)
-
+            # 'f' single precision 'd' double precision
+            if EMBEDDINGS_BITS == 64:
+                input_array = array.array("d", vector)
+            else:
+                # 32 bits
+                input_array = array.array("f", vector)
+            
             cursor.execute("insert into VECTORS values (:1, :2)", [id, input_array])
 
 
@@ -168,8 +176,10 @@ logging.basicConfig(
 print("")
 print("Start processing...")
 print("")
+print("List of books to be loaded and indexed:")
 
-print(f"List of books: {INPUT_FILES}")
+for book_name in INPUT_FILES:
+      print(book_name)
 print("")
 
 oci_config = load_oci_config()

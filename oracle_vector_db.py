@@ -32,7 +32,7 @@ Warnings:
 import time
 from tqdm import tqdm
 import array
-from typing import List, Any, Tuple, Dict
+from typing import List, Any, Dict
 from llama_index.vector_stores.types import (
     VectorStore,
     VectorStoreQuery,
@@ -80,7 +80,7 @@ def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
                             FETCH FIRST {top_k} ROWS ONLY"""
 
                 if verbose:
-                    print(f"select: {select}")
+                    logging.info(f"select: {select}")
 
                 cursor.execute(select, [array_query])
 
@@ -163,7 +163,7 @@ class OracleVectorStore(VectorStore):
         ids_list = []
         for node in nodes:
             # the node contains already the embedding
-            self.node_dict[node.node_id] = node
+            self.node_dict[node.id_] = node
             ids_list.append(node.id_)
 
         return ids_list
@@ -193,9 +193,8 @@ class OracleVectorStore(VectorStore):
         )
 
     def persist(self, persist_path=None, fs=None) -> None:
-        """Persist the SimpleVectorStore to a directory.
-
-        NOTE: we are not implementing this for now.
+        """
+        Persist VectorStore to Oracle DB
 
         """
 
