@@ -15,3 +15,7 @@ TOKENIZER = "Cohere/command-nightly"
 # possible values: 32 or 64
 # must be aligned with the create_tables.sql used
 EMBEDDINGS_BITS = 64
+
+# ID generation: LLINDEX, HASH, BOOK_PAGE_NUM
+# define the method to generate ID
+ID_GEN_METHOD = "HASH"
