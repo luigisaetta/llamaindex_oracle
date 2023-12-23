@@ -18,7 +18,8 @@ A very good introduction to what **Retrieval Augmented Generation** (RAG) is can
 
 ## Demos
 * [custom_vector_store_demo1](./custom_vector_store_demo1.ipynb) This NB shows a demo where you get answers to questions on Oracle Database and new features in 23c
-* Bot powered by Vector DB and OCI GenAI
+* [Bot] powered by **Oracle Vector DB** and **OCI GenAI**
+* [demo3](./custom_vector_store_demo3.ipynb) shows ad to add a Reranker to the RAG chain; I have used **Cohere**
 
 ## Setup
 See the wiki pages.
