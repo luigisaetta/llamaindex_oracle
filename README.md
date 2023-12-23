@@ -43,8 +43,9 @@ Code and functionalities can change, as a result of the feedbacks from customers
 
 ## Release used for the demo (WIP)
 * OCI ADS 2.9.1
-* Oracle Database 23c free edition with Vector DB
+* Oracle Database 23c (23.4) free edition with Vector DB
 
 ## Libraries
+* OCI ADS
 * Streamlit
 * Llama-index
