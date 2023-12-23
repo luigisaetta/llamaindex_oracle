@@ -2,7 +2,7 @@
 File name: oracle_vector_db.py
 Author: Luigi Saetta
 Date created: 2023-12-15
-Date last modified: 2023-12-17
+Date last modified: 2023-12-23
 Python Version: 3.9
 
 Description:
@@ -67,6 +67,8 @@ def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
     """
     Executes a query against an Oracle database to find the top_k closest vectors to the given embedding.
 
+    History:
+        23/12/2023: modified to return some metadata (book_name, page_num)
     Args:
         embed_query (List[float]): A list of floats representing the query vector embedding.
         top_k (int, optional): The number of closest vectors to retrieve. Defaults to 2.
@@ -84,8 +86,9 @@ def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
             with connection.cursor() as cursor:
                 array_query = array.array("d", embed_query)
 
-                select = f"""select V.id, C.CHUNK, ROUND(VECTOR_DISTANCE(V.VEC, :1, DOT), 3)
-                            as d from VECTORS V, CHUNKS C
+                select = f"""select V.id, C.CHUNK, C.PAGE_NUM, 
+                            ROUND(VECTOR_DISTANCE(V.VEC, :1, DOT), 3) as d 
+                            from VECTORS V, CHUNKS C
                             where C.ID = V.ID
                             order by d
                             FETCH FIRST {top_k} ROWS ONLY"""
@@ -106,9 +109,15 @@ def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
                     clob_pointer = row[1]
                     full_clob_data = clob_pointer.read()
 
-                    result_nodes.append(TextNode(id_=row[0], text=full_clob_data))
+                    result_nodes.append(
+                        TextNode(
+                            id_=row[0],
+                            text=full_clob_data,
+                            metadata={"page_label": row[2]},
+                        )
+                    )
                     node_ids.append(row[0])
-                    similarities.append(row[2])
+                    similarities.append(row[3])
 
     except Exception as e:
         logging.error(f"Error occurred in oracle_query: {e}")
