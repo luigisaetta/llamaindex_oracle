@@ -32,6 +32,7 @@ import re
 from tqdm import tqdm
 import array
 import numpy as np
+import time
 
 # to generate id from text
 import hashlib
@@ -213,6 +214,9 @@ def register_book(book_name, connection):
 # Main
 #
 
+# mark start
+tStart = time.time()
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -285,9 +289,12 @@ with oracledb.connect(user=DB_USER, password=DB_PWD, dsn=DSN) as connection:
     # end !!!
     tot_pages = np.sum(np.array(num_pages))
 
+tEla = time.time() - tStart
+
 print("")
 print("Processing done !!!")
 print(
     f"We have processed {tot_pages} pages and saved text chunks and embeddings in the DB"
 )
+print(f"Total elapsed time: {round(tEla, 0)} sec.")
 print()

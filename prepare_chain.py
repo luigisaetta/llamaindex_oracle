@@ -31,12 +31,13 @@ from llama_index import VectorStoreIndex, ServiceContext
 from llama_index.callbacks import CallbackManager
 from tokenizers import Tokenizer
 from llama_index.callbacks import TokenCountingHandler
+from llama_index.llms import MistralAI, ChatMessage
 
 import ads
 from ads.llm import GenerativeAIEmbeddings, GenerativeAI
 
-from config_private import COMPARTMENT_OCID, ENDPOINT
-from config import EMBED_MODEL, TOKENIZER
+from config_private import COMPARTMENT_OCID, ENDPOINT, MISTRAL_API_KEY
+from config import EMBED_MODEL, TOKENIZER, GEN_MODEL
 
 from oci_utils import load_oci_config
 from oracle_vector_db import OracleVectorStore
@@ -69,20 +70,29 @@ def create_query_engine(token_counter=None, verbose=False):
     v_store = OracleVectorStore(verbose=False)
 
     # this is to access OCI GenAI service
-    llm_oci = GenerativeAI(
-        compartment_id=COMPARTMENT_OCID,
-        max_tokens=1024,
-        client_kwargs={"service_endpoint": ENDPOINT},
-    )
+    
+    if GEN_MODEL == "OCI":
+        llm = GenerativeAI(
+            compartment_id=COMPARTMENT_OCID,
+            max_tokens=1024,
+            # added 23/12 to avoid error for context too long
+            truncate = "END",
+            client_kwargs={"service_endpoint": ENDPOINT},
+        )
+    if GEN_MODEL == "MISTRAL":
+        llm = MistralAI(api_key=MISTRAL_API_KEY,
+                model="mistral-small",
+                temperature = 0.2,
+                max_tokens=1024)
 
     cohere_tokenizer = Tokenizer.from_pretrained(TOKENIZER)
     token_counter = TokenCountingHandler(tokenizer=cohere_tokenizer.encode)
 
     callback_manager = CallbackManager([token_counter])
 
-    # integrate OCI in llama-index
+    # integrate OCI/Mistral in llama-index
     service_context = ServiceContext.from_defaults(
-        llm=llm_oci, embed_model=embed_model, callback_manager=callback_manager
+        llm=llm, embed_model=embed_model, callback_manager=callback_manager
     )
 
     index = VectorStoreIndex.from_vector_store(
@@ -91,6 +101,8 @@ def create_query_engine(token_counter=None, verbose=False):
 
     # the whole chain (query string -> embed query -> retrieval -> context, query-> GenAI -> response)
     # is wrapped in the query engine
+
+    # here we could plug a reranker improving the quality
     query_engine = index.as_query_engine(similarity_top_k=5)
 
     return query_engine, token_counter

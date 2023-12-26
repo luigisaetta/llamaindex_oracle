@@ -28,21 +28,27 @@ Warnings:
 
 # the book we're going to split and embed
 # INPUT_FILES = ["./ambrosetti.pdf"]
-INPUT_FILES = [
-    "database-concepts.pdf",
-    "oracle-database-23c-new-features-guide.pdf",
-    "CurrentEssentialsofMedicine.pdf",
-    "python4everybody.pdf",
-]
-# INPUT_FILES = ["./python4everybody.pdf"]
+# INPUT_FILES = [
+#    "database-concepts.pdf",
+#    "oracle-database-23c-new-features-guide.pdf",
+#    "CurrentEssentialsofMedicine.pdf",
+#    "python4everybody.pdf",
+#    "Crisidemocraziafakenews.pdf"
+# ]
+INPUT_FILES = ["ai-4-italy.pdf",
+               "feynman_vol1.pdf"]
 
 # Cohere embeddings model
 # for english use this one
-EMBED_MODEL = "cohere.embed-english-v3.0"
+EMBED_MODEL = "cohere.embed-multilingual-v3.0"
 # used for token counting
 TOKENIZER = "Cohere/command-nightly"
 # for other language (must be consistent when do query)
 # EMBED_MODEL = "cohere.embed-multilingual-v3.0"
+
+# choose the Gen Model (Mistral to test Italian)
+# GEN_MODEL = "OCI"
+GEN_MODEL = "MISTRAL"
 
 # bits used to store embeddings
 # possible values: 32 or 64
