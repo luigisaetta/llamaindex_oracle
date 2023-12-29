@@ -7,6 +7,7 @@ This repo contains all the work done on the development of RAG applications usin
 * Oracle Vector DB
 * Oracle OCI GenAI Service
 * Oracle OCI Embeddings
+* Cohere Reranking
 * OCI ADS 2.9.1 (with support for OCI GenAI)
 * llama-index
 
@@ -15,21 +16,23 @@ A very good introduction to what **Retrieval Augmented Generation** (RAG) is can
 
 ## Features
 * basic (12/2023) integration between **Oracle DB Vector Store (23c)** and **llama-index**
+* All documents stored in an Oracle DB
+* Oracle DB used for semantic search
+* Reranking to improve retrieval
+* How to show references (documents used for the response generation)
 
 ## Demos
 * [demo1](./custom_vector_store_demo1.ipynb) This NB shows a demo where you get answers to questions on Oracle Database and new features in 23c
-* [Bot] powered by **Oracle Vector DB** and **OCI GenAI**
+* [Bot](./oracle_bot.py) powered by **Oracle Vector DB** and **OCI GenAI**
 * [demo3](./custom_vector_store_demo3.ipynb) shows ad to add a Reranker to the RAG chain; I have used **Cohere**
 
 ## Setup
 See the wiki pages.
 
 ## Loading data
-You can use the program [create_save_embeddings](./create_save_embeddings.py) to load all the data in the Oracle DB schema.
-
-You can launch it using the script [load_books](./load_books.sh).
-
-The list of files is specified in config.py
+* You can use [create_save_embeddings](./create_save_embeddings.py) to load all the data in the Oracle DB schema.
+* You can launch it using the script [load_books](./load_books.sh).
+* The list of files to be loaded is specified in config.py
 
 You need to have pdf files in the same directory.
 
@@ -41,7 +44,7 @@ To test these functionalities you need to enrol in the LA programs and install t
 
 Code and functionalities can change, as a result of the feedbacks from customers.
 
-## Release used for the demo (WIP)
+## Releases used for the demo (WIP)
 * OCI ADS 2.9.1
 * Oracle Database 23c (23.4) free edition with Vector DB
 
