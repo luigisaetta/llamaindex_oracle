@@ -110,6 +110,7 @@ def create_query_engine(token_counter=None, verbose=False):
     )
 
     # this is the custom class to access Oracle DB as Vectore Store
+    logging.info("Using Oracle DB Vector Store...")
     v_store = OracleVectorStore(verbose=False)
 
     # this is to access OCI or MISTRAL GenAI service
@@ -143,5 +144,8 @@ def create_query_engine(token_counter=None, verbose=False):
         )
     else:
         query_engine = index.as_query_engine(similarity_top_k=TOP_K)
+
+    # to add a blank line in the log
+    logging.info("")
 
     return query_engine, token_counter

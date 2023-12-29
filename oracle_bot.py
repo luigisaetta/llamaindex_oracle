@@ -24,6 +24,7 @@ Warnings:
 """
 
 import logging
+import time
 import streamlit as st
 
 # to use the create_query_engine
@@ -47,6 +48,19 @@ def create_query_engine(verbose=False):
 
     # token_counter keeps track of the num. of tokens
     return query_engine, token_counter
+
+
+# to format output with references
+def format_output(response):
+    output = response.response
+
+    if ADD_REFERENCES and len(response.source_nodes) > 0:
+        output += "\n\n Ref.:\n\n"
+
+        for node in response.source_nodes:
+            output += str(node.metadata).replace("{", "").replace("}", "") + "  \n"
+
+    return output
 
 
 #
@@ -96,7 +110,13 @@ if question := st.chat_input("Hello, how can I help you?"):
         logging.info("Calling RAG chain..")
 
         with st.spinner("Waiting for answer from AI services..."):
+            tStart = time.time()
+
+            # Here we call the entire chain !!!
             response = query_engine.query(question)
+
+            tEla = time.time() - tStart
+            logging.info(f"Elapsed time: {round(tEla, 1)} sec.")
 
         # display num. of input/output token
         # count are incrementals
@@ -110,12 +130,10 @@ if question := st.chat_input("Hello, how can I help you?"):
 
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
-            st.markdown(response)
-
-            # add references
-            if ADD_REFERENCES == True:
-                for node in response.source_nodes:
-                    st.markdown(node.metadata)
+            if ADD_REFERENCES:
+                st.markdown(format_output(response))
+            else:
+                st.markdown(response)
 
         # Add assistant response to chat history
         st.session_state.messages.append({"role": "assistant", "content": response})
