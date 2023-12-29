@@ -86,10 +86,13 @@ def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
             with connection.cursor() as cursor:
                 array_query = array.array("d", embed_query)
 
+                # changed select adding books (39/12/2023)
                 select = f"""select V.id, C.CHUNK, C.PAGE_NUM, 
-                            ROUND(VECTOR_DISTANCE(V.VEC, :1, DOT), 3) as d 
-                            from VECTORS V, CHUNKS C
-                            where C.ID = V.ID
+                            ROUND(VECTOR_DISTANCE(V.VEC, :1, DOT), 3) as d,
+                            NAME 
+                            from VECTORS V, CHUNKS C, BOOKS B
+                            where C.ID = V.ID and
+                            C.BOOK_ID = B.ID
                             order by d
                             FETCH FIRST {top_k} ROWS ONLY"""
 
@@ -109,11 +112,12 @@ def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
                     clob_pointer = row[1]
                     full_clob_data = clob_pointer.read()
 
+                    # 29/12: added book_name to metadata
                     result_nodes.append(
                         TextNode(
                             id_=row[0],
                             text=full_clob_data,
-                            metadata={"page_label": row[2]},
+                            metadata={"file_name": row[4], "page_label": row[2]},
                         )
                     )
                     node_ids.append(row[0])
