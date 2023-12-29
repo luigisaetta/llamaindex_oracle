@@ -39,7 +39,7 @@ import ads
 from ads.llm import GenerativeAIEmbeddings, GenerativeAI
 
 from config_private import COMPARTMENT_OCID, ENDPOINT, MISTRAL_API_KEY
-from config import EMBED_MODEL, TOKENIZER, GEN_MODEL, MAX_TOKENS
+from config import EMBED_MODEL, TOKENIZER, GEN_MODEL, MAX_TOKENS, TOP_K
 
 from oci_utils import load_oci_config
 from oracle_vector_db import OracleVectorStore
@@ -48,6 +48,32 @@ from oracle_vector_db import OracleVectorStore
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
+
+
+#
+# enables to plug different GEN_MODELS
+# for now: OCI, MISTRAL
+#
+def create_llm(gen_model="OCI"):
+    llm = None
+
+    if gen_model == "OCI":
+        llm = GenerativeAI(
+            compartment_id=COMPARTMENT_OCID,
+            max_tokens=MAX_TOKENS,
+            # added 23/12 to avoid error for context too long
+            truncate="END",
+            client_kwargs={"service_endpoint": ENDPOINT},
+        )
+    if gen_model == "MISTRAL":
+        llm = MistralAI(
+            api_key=MISTRAL_API_KEY,
+            model="mistral-small",
+            temperature=0.2,
+            max_tokens=MAX_TOKENS,
+        )
+
+    return llm
 
 
 def create_query_engine(token_counter=None, verbose=False):
@@ -73,23 +99,8 @@ def create_query_engine(token_counter=None, verbose=False):
     # this is the custom class to access Oracle DB as Vectore Store
     v_store = OracleVectorStore(verbose=False)
 
-    # this is to access OCI GenAI service
-
-    if GEN_MODEL == "OCI":
-        llm = GenerativeAI(
-            compartment_id=COMPARTMENT_OCID,
-            max_tokens=MAX_TOKENS,
-            # added 23/12 to avoid error for context too long
-            truncate="END",
-            client_kwargs={"service_endpoint": ENDPOINT},
-        )
-    if GEN_MODEL == "MISTRAL":
-        llm = MistralAI(
-            api_key=MISTRAL_API_KEY,
-            model="mistral-small",
-            temperature=0.2,
-            max_tokens=MAX_TOKENS,
-        )
+    # this is to access OCI or MISTRAL GenAI service
+    llm = create_llm(gen_model=GEN_MODEL)
 
     # this part has been added to count the total # of tokens
     cohere_tokenizer = Tokenizer.from_pretrained(TOKENIZER)
@@ -110,6 +121,6 @@ def create_query_engine(token_counter=None, verbose=False):
     # is wrapped in the query engine
 
     # here we could plug a reranker improving the quality
-    query_engine = index.as_query_engine(similarity_top_k=5)
+    query_engine = index.as_query_engine(similarity_top_k=TOP_K)
 
     return query_engine, token_counter
