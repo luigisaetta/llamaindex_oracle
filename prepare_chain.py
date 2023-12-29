@@ -33,13 +33,23 @@ from llama_index import VectorStoreIndex, ServiceContext
 from llama_index.callbacks import CallbackManager
 from tokenizers import Tokenizer
 from llama_index.callbacks import TokenCountingHandler
+from llama_index.postprocessor.cohere_rerank import CohereRerank
 from llama_index.llms import MistralAI
 
 import ads
 from ads.llm import GenerativeAIEmbeddings, GenerativeAI
 
-from config_private import COMPARTMENT_OCID, ENDPOINT, MISTRAL_API_KEY
-from config import EMBED_MODEL, TOKENIZER, GEN_MODEL, MAX_TOKENS, TOP_K
+# COHERE_KEY is used for reranker
+from config_private import COMPARTMENT_OCID, ENDPOINT, MISTRAL_API_KEY, COHERE_API_KEY
+from config import (
+    EMBED_MODEL,
+    TOKENIZER,
+    GEN_MODEL,
+    MAX_TOKENS,
+    TOP_K,
+    ADD_RERANKER,
+    TOP_N,
+)
 
 from oci_utils import load_oci_config
 from oracle_vector_db import OracleVectorStore
@@ -81,6 +91,9 @@ def create_query_engine(token_counter=None, verbose=False):
     logging.info(f"using {EMBED_MODEL} for embeddings...")
     logging.info(f"using {GEN_MODEL} as LLM...")
 
+    if ADD_RERANKER:
+        logging.info(f"using Cohere as reranker...")
+
     oci_config = load_oci_config()
 
     # need to do this way
@@ -113,6 +126,9 @@ def create_query_engine(token_counter=None, verbose=False):
         llm=llm, embed_model=embed_model, callback_manager=callback_manager
     )
 
+    if ADD_RERANKER == True:
+        reranker = CohereRerank(api_key=COHERE_API_KEY, top_n=TOP_N)
+
     index = VectorStoreIndex.from_vector_store(
         vector_store=v_store, service_context=service_context
     )
@@ -121,6 +137,11 @@ def create_query_engine(token_counter=None, verbose=False):
     # is wrapped in the query engine
 
     # here we could plug a reranker improving the quality
-    query_engine = index.as_query_engine(similarity_top_k=TOP_K)
+    if ADD_RERANKER == True:
+        query_engine = index.as_query_engine(
+            similarity_top_k=TOP_K, node_postprocessors=[reranker]
+        )
+    else:
+        query_engine = index.as_query_engine(similarity_top_k=TOP_K)
 
     return query_engine, token_counter

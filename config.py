@@ -51,9 +51,14 @@ GEN_MODEL = "MISTRAL"
 
 # for retrieval
 TOP_K = 6
+# reranker
+TOP_N = 4
 
 # for GenAI models
 MAX_TOKENS = 1024
+
+# if we want to add a rersanker (Cohere for now)
+ADD_RERANKER = True
 
 # bits used to store embeddings
 # possible values: 32 or 64
@@ -63,3 +68,6 @@ EMBEDDINGS_BITS = 64
 # ID generation: LLINDEX, HASH, BOOK_PAGE_NUM
 # define the method to generate ID
 ID_GEN_METHOD = "HASH"
+
+# UI
+ADD_REFERENCES = True

@@ -2,7 +2,7 @@
 File name: oracle_bot.py
 Author: Luigi Saetta
 Date created: 2023-12-17
-Date last modified: 2023-12-18
+Date last modified: 2023-12-29
 Python Version: 3.9
 
 Description:
@@ -32,6 +32,7 @@ import prepare_chain
 #
 # Configs
 #
+from config import ADD_REFERENCES
 
 
 def reset_conversation():
@@ -110,6 +111,11 @@ if question := st.chat_input("Hello, how can I help you?"):
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
             st.markdown(response)
+
+            # add references
+            if ADD_REFERENCES == True:
+                for node in response.source_nodes:
+                    st.markdown(node.metadata)
 
         # Add assistant response to chat history
         st.session_state.messages.append({"role": "assistant", "content": response})
