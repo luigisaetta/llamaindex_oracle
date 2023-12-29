@@ -2,7 +2,7 @@
 File name: prepare_chain.py
 Author: Luigi Saetta
 Date created: 2023-12-17
-Date last modified: 2023-12-17
+Date last modified: 2023-12-29
 Python Version: 3.9
 
 Description:
@@ -21,6 +21,8 @@ Notes:
     OCI GenAI service, Oracle GenAI Embeddings, to buil a RAG solution,
     where all he data (text + embeddings) are stored in Oracle DB 23c 
 
+    Now it can use for LLM: OCI, Mistral 8x7B
+
 Warnings:
     This module is in development, may change in future versions.
 """
@@ -31,13 +33,13 @@ from llama_index import VectorStoreIndex, ServiceContext
 from llama_index.callbacks import CallbackManager
 from tokenizers import Tokenizer
 from llama_index.callbacks import TokenCountingHandler
-from llama_index.llms import MistralAI, ChatMessage
+from llama_index.llms import MistralAI
 
 import ads
 from ads.llm import GenerativeAIEmbeddings, GenerativeAI
 
 from config_private import COMPARTMENT_OCID, ENDPOINT, MISTRAL_API_KEY
-from config import EMBED_MODEL, TOKENIZER, GEN_MODEL
+from config import EMBED_MODEL, TOKENIZER, GEN_MODEL, MAX_TOKENS
 
 from oci_utils import load_oci_config
 from oracle_vector_db import OracleVectorStore
@@ -50,6 +52,8 @@ logging.basicConfig(
 
 def create_query_engine(token_counter=None, verbose=False):
     logging.info("calling create_query_engine()...")
+    logging.info(f"using {EMBED_MODEL} for embeddings...")
+    logging.info(f"using {GEN_MODEL} as LLM...")
 
     oci_config = load_oci_config()
 
@@ -70,21 +74,24 @@ def create_query_engine(token_counter=None, verbose=False):
     v_store = OracleVectorStore(verbose=False)
 
     # this is to access OCI GenAI service
-    
+
     if GEN_MODEL == "OCI":
         llm = GenerativeAI(
             compartment_id=COMPARTMENT_OCID,
-            max_tokens=1024,
+            max_tokens=MAX_TOKENS,
             # added 23/12 to avoid error for context too long
-            truncate = "END",
+            truncate="END",
             client_kwargs={"service_endpoint": ENDPOINT},
         )
     if GEN_MODEL == "MISTRAL":
-        llm = MistralAI(api_key=MISTRAL_API_KEY,
-                model="mistral-small",
-                temperature = 0.2,
-                max_tokens=1024)
+        llm = MistralAI(
+            api_key=MISTRAL_API_KEY,
+            model="mistral-small",
+            temperature=0.2,
+            max_tokens=MAX_TOKENS,
+        )
 
+    # this part has been added to count the total # of tokens
     cohere_tokenizer = Tokenizer.from_pretrained(TOKENIZER)
     token_counter = TokenCountingHandler(tokenizer=cohere_tokenizer.encode)
 

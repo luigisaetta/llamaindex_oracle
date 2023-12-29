@@ -35,8 +35,7 @@ Warnings:
 #    "python4everybody.pdf",
 #    "Crisidemocraziafakenews.pdf"
 # ]
-INPUT_FILES = ["ai-4-italy.pdf",
-               "feynman_vol1.pdf"]
+INPUT_FILES = ["ai-4-italy.pdf", "feynman_vol1.pdf"]
 
 # Cohere embeddings model
 # for english use this one
@@ -49,6 +48,9 @@ TOKENIZER = "Cohere/command-nightly"
 # choose the Gen Model (Mistral to test Italian)
 # GEN_MODEL = "OCI"
 GEN_MODEL = "MISTRAL"
+
+# for GenAI models
+MAX_TOKENS = 1024
 
 # bits used to store embeddings
 # possible values: 32 or 64
