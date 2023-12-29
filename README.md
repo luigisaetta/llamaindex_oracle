@@ -8,7 +8,7 @@ This repo contains all the work done on the development of RAG applications usin
 * Oracle OCI GenAI Service
 * Oracle OCI Embeddings
 * Cohere Reranking
-* OCI ADS 2.9.1 (with support for OCI GenAI)
+* OCI [ADS 2.9.1](https://accelerated-data-science.readthedocs.io/en/latest/user_guide/large_language_model/langchain_models.html) (with support for OCI GenAI)
 * llama-index
 
 ## What is RAG?
