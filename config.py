@@ -2,7 +2,7 @@
 File name: config.py
 Author: Luigi Saetta
 Date created: 2023-12-15
-Date last modified: 2023-12-22
+Date last modified: 2023-12-29
 Python Version: 3.9
 
 Description:
@@ -35,7 +35,10 @@ Warnings:
 #    "python4everybody.pdf",
 #    "Crisidemocraziafakenews.pdf"
 # ]
-INPUT_FILES = ["AI Generativa - casi d'uso per industry.pdf"]
+# INPUT_FILES = ["AI Generativa - casi d'uso per industry.pdf"]
+INPUT_FILES = [
+    "Fare_grafica_editoriale_Progettare_il_libro_storia,_teorie,_tecniche.pdf"
+]
 
 # Cohere embeddings model
 # for english use this one
@@ -50,14 +53,14 @@ TOKENIZER = "Cohere/command-nightly"
 GEN_MODEL = "MISTRAL"
 
 # for retrieval
-TOP_K = 6
+TOP_K = 8
 # reranker
 TOP_N = 4
 
 # for GenAI models
 MAX_TOKENS = 1024
 
-# if we want to add a rersanker (Cohere for now)
+# if we want to add a reranker (Cohere for now)
 ADD_RERANKER = True
 
 # bits used to store embeddings
