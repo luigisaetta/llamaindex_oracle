@@ -48,11 +48,15 @@ from config import (
     MAX_TOKENS,
     TOP_K,
     ADD_RERANKER,
+    RERANKER_MODEL,
+    RERANKER_ID,
     TOP_N,
 )
 
 from oci_utils import load_oci_config
 from oracle_vector_db import OracleVectorStore
+from oci_baai_reranker import OCIBAAIReranker
+from oci_llama_reranker import OCILLamaReranker
 
 # Configure logging
 logging.basicConfig(
@@ -85,6 +89,24 @@ def create_llm(gen_model="OCI"):
 
     return llm
 
+def create_reranker(reranker_model="COHERE"):
+    reranker = None
+
+    if reranker_model == "COHERE":
+        reranker = CohereRerank(api_key=COHERE_API_KEY, top_n=TOP_N)
+    if reranker_model == "OCI_BAAI":
+        oci_config = load_oci_config()
+
+        # need to do this way
+        api_keys_config = ads.auth.api_keys(oci_config)
+
+        baai_reranker = OCIBAAIReranker(
+            auth=api_keys_config, 
+            deployment_id=RERANKER_ID, region="eu-frankfurt-1")
+        
+        reranker = OCILLamaReranker(oci_reranker=baai_reranker, top_n=TOP_N)
+
+    return reranker
 
 def create_query_engine(token_counter=None, verbose=False):
     logging.info("calling create_query_engine()...")
@@ -92,7 +114,7 @@ def create_query_engine(token_counter=None, verbose=False):
     logging.info(f"using {GEN_MODEL} as LLM...")
 
     if ADD_RERANKER:
-        logging.info(f"using Cohere as reranker...")
+        logging.info(f"using {RERANKER_MODEL} as reranker...")
 
     oci_config = load_oci_config()
 
@@ -128,7 +150,7 @@ def create_query_engine(token_counter=None, verbose=False):
     )
 
     if ADD_RERANKER == True:
-        reranker = CohereRerank(api_key=COHERE_API_KEY, top_n=TOP_N)
+        reranker = create_reranker(reranker_model="COHERE")
 
     index = VectorStoreIndex.from_vector_store(
         vector_store=v_store, service_context=service_context

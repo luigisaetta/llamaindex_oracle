@@ -41,12 +41,12 @@ INPUT_FILES = [
 ]
 
 # Cohere embeddings model
-# for english use this one
+# for multilingual (es: italian) use this one
 EMBED_MODEL = "cohere.embed-multilingual-v3.0"
 # used for token counting
 TOKENIZER = "Cohere/command-nightly"
-# for other language (must be consistent when do query)
-# EMBED_MODEL = "cohere.embed-multilingual-v3.0"
+# for english use this one
+# EMBED_MODEL = "cohere.embed-english-v3.0"
 
 # choose the Gen Model (Mistral to test Italian)
 # GEN_MODEL = "OCI"
@@ -62,6 +62,9 @@ MAX_TOKENS = 1024
 
 # if we want to add a reranker (Cohere for now)
 ADD_RERANKER = True
+# RERANKER_MODEL = "COHERE"
+RERANKER_MODEL = "OCI_BAAI"
+RERANKER_ID = "ocid1.datasciencemodeldeployment.oc1.eu-frankfurt-1.amaaaaaangencdyahhhowbtx4blznvebldr73a5dv4m22xjiaux36x4v6sta"
 
 # bits used to store embeddings
 # possible values: 32 or 64

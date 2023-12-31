@@ -158,6 +158,8 @@ def compute_embeddings(embed_model, pages_text):
 
 
 def save_embeddings_in_db(embeddings, pages_id, connection):
+    tot_errors = 0
+
     with connection.cursor() as cursor:
         logging.info("Saving embeddings to DB...")
 
@@ -169,24 +171,41 @@ def save_embeddings_in_db(embeddings, pages_id, connection):
                 # 32 bits
                 input_array = array.array("f", vector)
 
-            cursor.execute("insert into VECTORS values (:1, :2)", [id, input_array])
+            try:
+                # insert single embedding
+                cursor.execute("insert into VECTORS values (:1, :2)", [id, input_array])
+            except Exception as e:
+                logging.error("Error in save embeddings...")
+                logging.error(e)
+                tot_errors += 1
+
+    logging.info(f"Tot. errors in save_embeddings: {tot_errors}")
 
 
 # this function is called once for each book
 # and saves in DB all the pages of the book + embeddings
 def save_chunks_in_db(pages_text, pages_id, pages_num, book_id, connection):
+    tot_errors = 0
+
     with connection.cursor() as cursor:
         logging.info("Saving texts to DB...")
         cursor.setinputsizes(None, oracledb.DB_TYPE_CLOB)
 
         for id, text, page_num in zip(tqdm(pages_id), pages_text, pages_num):
-            cursor.execute(
-                "insert into CHUNKS (ID, CHUNK, PAGE_NUM, BOOK_ID) values (:1, :2, :3, :4)",
-                [id, text, page_num, book_id],
-            )
+            try:
+                cursor.execute(
+                    "insert into CHUNKS (ID, CHUNK, PAGE_NUM, BOOK_ID) values (:1, :2, :3, :4)",
+                    [id, text, page_num, book_id],
+                )
+            except Exception as e:
+                logging.error("Error in save chunks...")
+                logging.error(e)
+                tot_errors += 1
+
+    logging.info(f"Tot. errors in save_chunks: {tot_errors}")
 
 
-# with this functin every book added to DB is register with a unique id
+# with this function every book added to DB is register with a unique id
 def register_book(book_name, connection):
     with connection.cursor() as cursor:
         # get the new key
@@ -281,7 +300,7 @@ with oracledb.connect(user=DB_USER, password=DB_PWD, dsn=DSN) as connection:
         # store text chunks (pages for now)
         save_chunks_in_db(pages_text, pages_id, pages_num, book_id, connection)
 
-        # a tx is a book
+        # a txn is a book
         connection.commit()
 
         logging.info("Save texts OK...")
