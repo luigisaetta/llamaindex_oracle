@@ -89,6 +89,7 @@ def create_llm(gen_model="OCI"):
 
     return llm
 
+
 def create_reranker(reranker_model="COHERE"):
     reranker = None
 
@@ -101,12 +102,13 @@ def create_reranker(reranker_model="COHERE"):
         api_keys_config = ads.auth.api_keys(oci_config)
 
         baai_reranker = OCIBAAIReranker(
-            auth=api_keys_config, 
-            deployment_id=RERANKER_ID, region="eu-frankfurt-1")
-        
+            auth=api_keys_config, deployment_id=RERANKER_ID, region="eu-frankfurt-1"
+        )
+
         reranker = OCILLamaReranker(oci_reranker=baai_reranker, top_n=TOP_N)
 
     return reranker
+
 
 def create_query_engine(token_counter=None, verbose=False):
     logging.info("calling create_query_engine()...")

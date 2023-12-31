@@ -1,8 +1,42 @@
+"""
+File name: oci_baai_reranker.py
+Author: Luigi Saetta
+Date created: 2023-12-30
+Date last modified: 2023-12-31
+Python Version: 3.9
+
+Description:
+    This module provides the class to integrate a reranker
+    deployed as Model Deployment in OCI Data Science 
+    as reranker in llama-index
+
+Inspired by:
+    https://github.com/run-llama/llama_index/blob/main/llama_index/postprocessor/cohere_rerank.py
+
+Usage:
+    Import this module into other scripts to use its functions. 
+    Example:
+    baai_reranker = OCIBAAIReranker(
+            auth=api_keys_config, 
+            deployment_id=RERANKER_ID, region="eu-frankfurt-1")
+        
+    reranker = OCILLamaReranker(oci_reranker=baai_reranker, top_n=TOP_N)
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is a part of a set of demo showing how to use Oracle Vector DB,
+    OCI GenAI service, Oracle GenAI Embeddings, to build a RAG solution,
+    where all he data (text + embeddings) are stored in Oracle DB 23c 
+
+Warnings:
+    This module is in development, may change in future versions.
+"""
+
 import cloudpickle
 import requests
-import numpy as np
 import base64
-import ads
 import logging
 
 logging.basicConfig(
@@ -33,6 +67,9 @@ class OCIBAAIReranker:
         """
         This method builds the body for the https POST call
         """
+
+        # it has been difficult to figure out how to do this... seems to work
+        # maybe there are other ways
         val_ser = base64.b64encode(cloudpickle.dumps(input_list)).decode("utf-8")
         body = {"data": val_ser, "data_type": "numpy.ndarray"}
 
@@ -76,9 +113,6 @@ class OCIBAAIReranker:
         # x is a list of list, like [['what is panda?', 'The giant panda is a bear.'],
         #  ['what is panda?', 'It is an animal living in China']]
         x = [[query, text] for text in texts]
-
-        # prepares the body for the Model Deployment invocation
-        body = self._build_body(x)
 
         try:
             # here we invoke the deployment

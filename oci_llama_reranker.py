@@ -1,4 +1,39 @@
-import os
+"""
+File name: oci_llama_reranker.py
+Author: Luigi Saetta
+Date created: 2023-12-30
+Date last modified: 2023-12-31
+Python Version: 3.9
+
+Description:
+    This module provides the class to integrate a reranker
+    deployed as Model Deployment in OCI Data Science 
+    as reranker in llama-index
+
+Inspired by:
+    https://github.com/run-llama/llama_index/blob/main/llama_index/postprocessor/cohere_rerank.py
+
+Usage:
+    Import this module into other scripts to use its functions. 
+    Example:
+    baai_reranker = OCIBAAIReranker(
+            auth=api_keys_config, 
+            deployment_id=RERANKER_ID, region="eu-frankfurt-1")
+        
+    reranker = OCILLamaReranker(oci_reranker=baai_reranker, top_n=TOP_N)
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is a part of a set of demo showing how to use Oracle Vector DB,
+    OCI GenAI service, Oracle GenAI Embeddings, to build a RAG solution,
+    where all he data (text + embeddings) are stored in Oracle DB 23c 
+
+Warnings:
+    This module is in development, may change in future versions.
+"""
+
 from typing import Any, List, Optional
 
 from llama_index.bridge.pydantic import Field, PrivateAttr
@@ -8,7 +43,7 @@ from llama_index.schema import NodeWithScore, QueryBundle
 
 
 class OCILLamaReranker(BaseNodePostprocessor):
-    # by default use BAAY reranker large, deployed as OCI ODS model
+    # by default use BAAI reranker large, deployed as OCI ODS model
     model: str = "oci_baai_reranker"
     top_n: int = 2
     oci_reranker: Any = None
@@ -47,12 +82,14 @@ class OCILLamaReranker(BaseNodePostprocessor):
                 EventPayload.TOP_K: self.top_n,
             },
         ) as event:
+            # extract texts from node list
             texts = [node.node.get_content() for node in nodes]
 
             results = self._rerank(
                 query=query_bundle.query_str, texts=texts, top_n=self.top_n
             )
 
+            # build the output list to be compatible with llama-index
             new_nodes = []
             for result in results:
                 new_node_with_score = NodeWithScore(
