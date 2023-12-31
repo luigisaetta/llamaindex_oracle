@@ -20,6 +20,7 @@ A very good introduction to what **Retrieval Augmented Generation** (RAG) is can
 * Oracle DB used for semantic search
 * Reranking to improve retrieval
 * How to show references (documents used for the response generation)
+* (30/12) Added reranker implemented as OCI Model Deployment
 
 ## Demos
 * [demo1](./custom_vector_store_demo1.ipynb) This NB shows a demo where you get answers to questions on Oracle Database and new features in 23c
