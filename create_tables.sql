@@ -1,3 +1,5 @@
+drop table chunks;
+drop table vectors;
 drop table BOOKS;
   
 create table BOOKS
@@ -6,11 +8,11 @@ create table BOOKS
 PRIMARY KEY ("ID")  
 );
 
-drop table chunks;
 
 create table CHUNKS 
 (ID VARCHAR2(64) NOT NULL,
 CHUNK CLOB,
+PAGE_NUM VARCHAR2(10),
 BOOK_ID NUMBER,
 PRIMARY KEY ("ID"),
 CONSTRAINT fk_book
@@ -18,7 +20,6 @@ CONSTRAINT fk_book
         REFERENCES BOOKS (ID)
 );
 
-drop table vectors;
 
 create table VECTORS
 ("ID" VARCHAR2(64) NOT NULL,
