@@ -109,7 +109,7 @@ class OCIBAAIReranker:
 
             return []
 
-        return response.json()
+        return response
 
     def rerank(self, query, texts, top_n=2):
         """
