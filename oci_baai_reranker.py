@@ -91,16 +91,16 @@ class OCIBAAIReranker:
 
         try:
             # here we invoke the deployment
-            response = requests.post(
-                self.endpoint, json=body, auth=self.auth["signer"]
-            )
+            response = requests.post(self.endpoint, json=body, auth=self.auth["signer"])
 
             # check if HTTP status is OK
             if response.status_code == 200:
                 # ok go forward
                 response = response.json()
             else:
-                logging.error(f"Error in OCIBAAIReranker compute_score: {response.json()}")
+                logging.error(
+                    f"Error in OCIBAAIReranker compute_score: {response.json()}"
+                )
                 return []
 
         except Exception as e:
@@ -125,7 +125,7 @@ class OCIBAAIReranker:
         try:
             # here we invoke the deployment
             response = self._compute_score(x)
-            
+
             # return the texts in order of decreasing score
             sorted_data = []
             if len(response) > 0:
