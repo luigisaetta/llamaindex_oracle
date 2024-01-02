@@ -93,15 +93,23 @@ class OCIBAAIReranker:
             # here we invoke the deployment
             response = requests.post(
                 self.endpoint, json=body, auth=self.auth["signer"]
-            ).json()
+            )
+
+            # check if HTTP status is OK
+            if response.status_code == 200:
+                # ok go forward
+                response = response.json()
+            else:
+                logging.error(f"Error in OCIBAAIReranker compute_score: {response.json()}")
+                return []
 
         except Exception as e:
-            logging.error("Error in OCIReranker compute_score...")
+            logging.error("Error in OCIBAAIReranker compute_score...")
             logging.error(e)
 
             return []
 
-        return response
+        return response.json()
 
     def rerank(self, query, texts, top_n=2):
         """
@@ -117,7 +125,7 @@ class OCIBAAIReranker:
         try:
             # here we invoke the deployment
             response = self._compute_score(x)
-
+            
             # return the texts in order of decreasing score
             sorted_data = []
             if len(response) > 0:
@@ -136,7 +144,7 @@ class OCIBAAIReranker:
                 sorted_data = sorted_data[:top_n]
 
         except Exception as e:
-            logging.error("Error in OCIReranker rerank...")
+            logging.error("Error in OCIBAAIReranker rerank...")
             logging.error(e)
 
             return []
