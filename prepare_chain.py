@@ -42,6 +42,7 @@ from ads.llm import GenerativeAIEmbeddings, GenerativeAI
 # COHERE_KEY is used for reranker
 # MISTRAL_KEY for LLM
 from config_private import COMPARTMENT_OCID, ENDPOINT, MISTRAL_API_KEY, COHERE_API_KEY
+
 from config import (
     EMBED_MODEL_TYPE,
     EMBED_MODEL,
@@ -67,6 +68,8 @@ logging.basicConfig(
 
 #
 # This module now expse directly the factory methods for all the single components (llm, etc)
+# the philosophy of the factory methods  is that they're taking all the infos from the config
+# module... so as few parameter as possible
 #
 
 
@@ -74,10 +77,10 @@ logging.basicConfig(
 # enables to plug different GEN_MODELS
 # for now: OCI, MISTRAL
 #
-def create_llm(auth=None, gen_model="OCI"):
+def create_llm(auth=None):
     llm = None
 
-    if gen_model == "OCI":
+    if GEN_MODEL == "OCI":
         llm = GenerativeAI(
             auth=auth,
             compartment_id=COMPARTMENT_OCID,
@@ -86,7 +89,7 @@ def create_llm(auth=None, gen_model="OCI"):
             truncate="END",
             client_kwargs={"service_endpoint": ENDPOINT},
         )
-    if gen_model == "MISTRAL":
+    if GEN_MODEL == "MISTRAL":
         llm = MistralAI(
             api_key=MISTRAL_API_KEY,
             model="mistral-small",
@@ -97,19 +100,15 @@ def create_llm(auth=None, gen_model="OCI"):
     return llm
 
 
-def create_reranker(reranker_model="COHERE", verbose=False):
+def create_reranker(auth=None, verbose=False):
     reranker = None
 
-    if reranker_model == "COHERE":
+    if RERANKER_MODEL == "COHERE":
         reranker = CohereRerank(api_key=COHERE_API_KEY, top_n=TOP_N)
-    if reranker_model == "OCI_BAAI":
-        oci_config = load_oci_config()
 
-        # need to do this way
-        api_keys_config = ads.auth.api_keys(oci_config)
-
+    if RERANKER_MODEL == "OCI_BAAI":
         baai_reranker = OCIBAAIReranker(
-            auth=api_keys_config, deployment_id=RERANKER_ID, region="eu-frankfurt-1"
+            auth=auth, deployment_id=RERANKER_ID, region="eu-frankfurt-1"
         )
 
         reranker = OCILLamaReranker(
@@ -119,15 +118,13 @@ def create_reranker(reranker_model="COHERE", verbose=False):
     return reranker
 
 
-def create_embedding_model(
-    auth=None, embed_model_type="OCI", embed_model_name=EMBED_MODEL
-):
+def create_embedding_model(auth=None):
     embed_model = None
 
-    if embed_model_type == "OCI":
+    if EMBED_MODEL_TYPE == "OCI":
         embed_model = GenerativeAIEmbeddings(
             compartment_id=COMPARTMENT_OCID,
-            model=embed_model_name,
+            model=EMBED_MODEL,
             auth=auth,
             # Optionally you can specify keyword arguments for the OCI client
             # e.g. service_endpoint.

@@ -56,7 +56,7 @@ GEN_MODEL = "OCI"
 # for retrieval
 TOP_K = 8
 # reranker
-TOP_N = 4
+TOP_N = 3
 
 # for GenAI models
 MAX_TOKENS = 1024
