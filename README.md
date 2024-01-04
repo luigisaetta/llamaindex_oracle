@@ -61,4 +61,4 @@ In the module prepare_chain are defined factory methods to create: embedder, llm
 
 The philosophy is to make things simpler. So all the configuration are taken from config.py.
 
-If you want to change the ll, (or anything else) go to config.py. No params in the NBs
+If you want to change the llm, (or anything else) go to config.py. No params in the NBs
