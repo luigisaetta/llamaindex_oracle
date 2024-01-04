@@ -2,7 +2,7 @@
 File name: prepare_chain.py
 Author: Luigi Saetta
 Date created: 2023-12-17
-Date last modified: 2023-12-29
+Date last modified: 2023-01-04
 Python Version: 3.9
 
 Description:
@@ -40,8 +40,10 @@ import ads
 from ads.llm import GenerativeAIEmbeddings, GenerativeAI
 
 # COHERE_KEY is used for reranker
+# MISTRAL_KEY for LLM
 from config_private import COMPARTMENT_OCID, ENDPOINT, MISTRAL_API_KEY, COHERE_API_KEY
 from config import (
+    EMBED_MODEL_TYPE,
     EMBED_MODEL,
     TOKENIZER,
     GEN_MODEL,
@@ -63,16 +65,21 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+#
+# This module now expse directly the factory methods for all the single components (llm, etc)
+#
+
 
 #
 # enables to plug different GEN_MODELS
 # for now: OCI, MISTRAL
 #
-def create_llm(gen_model="OCI"):
+def create_llm(auth=None, gen_model="OCI"):
     llm = None
 
     if gen_model == "OCI":
         llm = GenerativeAI(
+            auth=auth,
             compartment_id=COMPARTMENT_OCID,
             max_tokens=MAX_TOKENS,
             # added 23/12 to avoid error for context too long
@@ -90,7 +97,7 @@ def create_llm(gen_model="OCI"):
     return llm
 
 
-def create_reranker(reranker_model="COHERE"):
+def create_reranker(reranker_model="COHERE", verbose=False):
     reranker = None
 
     if reranker_model == "COHERE":
@@ -105,32 +112,51 @@ def create_reranker(reranker_model="COHERE"):
             auth=api_keys_config, deployment_id=RERANKER_ID, region="eu-frankfurt-1"
         )
 
-        reranker = OCILLamaReranker(oci_reranker=baai_reranker, top_n=TOP_N)
+        reranker = OCILLamaReranker(
+            oci_reranker=baai_reranker, top_n=TOP_N, verbose=verbose
+        )
 
     return reranker
 
 
+def create_embedding_model(
+    auth=None, embed_model_type="OCI", embed_model_name=EMBED_MODEL
+):
+    embed_model = None
+
+    if embed_model_type == "OCI":
+        embed_model = GenerativeAIEmbeddings(
+            compartment_id=COMPARTMENT_OCID,
+            model=embed_model_name,
+            auth=auth,
+            # Optionally you can specify keyword arguments for the OCI client
+            # e.g. service_endpoint.
+            client_kwargs={"service_endpoint": ENDPOINT},
+        )
+
+    return embed_model
+
+
 def create_query_engine(token_counter=None, verbose=False):
     logging.info("calling create_query_engine()...")
-    logging.info(f"using {EMBED_MODEL} for embeddings...")
+    # for now the only supported here...
+    logging.info(f"using OCI {EMBED_MODEL} for embeddings...")
     logging.info(f"using {GEN_MODEL} as LLM...")
 
     if ADD_RERANKER:
         logging.info(f"using {RERANKER_MODEL} as reranker...")
 
+    # load security info needed for OCI
     oci_config = load_oci_config()
 
     # need to do this way
     api_keys_config = ads.auth.api_keys(oci_config)
 
     # this is to embed the question
-    embed_model = GenerativeAIEmbeddings(
-        compartment_id=COMPARTMENT_OCID,
-        model=EMBED_MODEL,
+    embed_model = create_embedding_model(
         auth=api_keys_config,
-        # Optionally you can specify keyword arguments for the OCI client
-        # e.g. service_endpoint.
-        client_kwargs={"service_endpoint": ENDPOINT},
+        embed_model_type=EMBED_MODEL_TYPE,
+        embed_model_name=EMBED_MODEL,
     )
 
     # this is the custom class to access Oracle DB as Vectore Store
@@ -138,7 +164,7 @@ def create_query_engine(token_counter=None, verbose=False):
     v_store = OracleVectorStore(verbose=False)
 
     # this is to access OCI or MISTRAL GenAI service
-    llm = create_llm(gen_model=GEN_MODEL)
+    llm = create_llm(auth=api_keys_config, gen_model=GEN_MODEL)
 
     # this part has been added to count the total # of tokens
     cohere_tokenizer = Tokenizer.from_pretrained(TOKENIZER)
@@ -151,9 +177,6 @@ def create_query_engine(token_counter=None, verbose=False):
         llm=llm, embed_model=embed_model, callback_manager=callback_manager
     )
 
-    if ADD_RERANKER == True:
-        reranker = create_reranker(reranker_model="COHERE")
-
     index = VectorStoreIndex.from_vector_store(
         vector_store=v_store, service_context=service_context
     )
@@ -163,6 +186,8 @@ def create_query_engine(token_counter=None, verbose=False):
 
     # here we could plug a reranker improving the quality
     if ADD_RERANKER == True:
+        reranker = create_reranker(reranker_model=RERANKER_MODEL)
+
         query_engine = index.as_query_engine(
             similarity_top_k=TOP_K, node_postprocessors=[reranker]
         )

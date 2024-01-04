@@ -2,7 +2,7 @@
 File name: oci_llama_reranker.py
 Author: Luigi Saetta
 Date created: 2023-12-30
-Date last modified: 2023-12-31
+Date last modified: 2024-01-02
 Python Version: 3.9
 
 Description:
@@ -34,12 +34,19 @@ Warnings:
     This module is in development, may change in future versions.
 """
 
+import time
 from typing import Any, List, Optional
 
-from llama_index.bridge.pydantic import Field, PrivateAttr
+from llama_index.bridge.pydantic import Field
 from llama_index.callbacks import CBEventType, EventPayload
 from llama_index.postprocessor.types import BaseNodePostprocessor
 from llama_index.schema import NodeWithScore, QueryBundle
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 class OCILLamaReranker(BaseNodePostprocessor):
@@ -47,14 +54,20 @@ class OCILLamaReranker(BaseNodePostprocessor):
     model: str = "oci_baai_reranker"
     top_n: int = 2
     oci_reranker: Any = None
+    verbose: bool = False
 
     def __init__(
-        self, model: str = "oci_baai_reranker", top_n: int = 2, oci_reranker: Any = None
+        self,
+        model: str = "oci_baai_reranker",
+        top_n: int = 2,
+        oci_reranker: Any = None,
+        verbose: bool = False,
     ) -> None:
         # this one to store model and top_n
         super().__init__(top_n=top_n, model=model)
 
         self.oci_reranker = oci_reranker
+        self.verbose = verbose
 
     @classmethod
     def class_name(cls) -> str:
@@ -68,6 +81,9 @@ class OCILLamaReranker(BaseNodePostprocessor):
         nodes: List[NodeWithScore],
         query_bundle: Optional[QueryBundle] = None,
     ) -> List[NodeWithScore]:
+        tStart = time.time()
+        logging.info("Reranking...")
+
         if query_bundle is None:
             raise ValueError("Missing query bundle in extra info.")
         if len(nodes) == 0:
@@ -98,4 +114,7 @@ class OCILLamaReranker(BaseNodePostprocessor):
                 new_nodes.append(new_node_with_score)
             event.on_end(payload={EventPayload.NODES: new_nodes})
 
+        tEla = time.time() - tStart
+        if self.verbose:
+            logging.info(f"...elapsed time: {round(tEla, 2)} sec.")
         return new_nodes

@@ -30,10 +30,14 @@ import streamlit as st
 # to use the create_query_engine
 import prepare_chain
 
+import ads
+from oci_utils import load_oci_config
+from oci_translator import OCITranslator
+
 #
 # Configs
 #
-from config import ADD_REFERENCES
+from config import ADD_REFERENCES, ADD_OCI_TRANSLATOR, GEN_MODEL, WORD_TO_TRIGGER_TRANS
 
 
 def reset_conversation():
@@ -48,6 +52,15 @@ def create_query_engine(verbose=False):
 
     # token_counter keeps track of the num. of tokens
     return query_engine, token_counter
+
+
+@st.cache_resource
+def create_translator():
+    oci_config = load_oci_config()
+
+    oci_trans = OCITranslator(oci_config=oci_config)
+
+    return oci_trans
 
 
 # to format output with references
@@ -91,6 +104,12 @@ with st.spinner("Initializing RAG chain..."):
     # here we create the query engine
     query_engine, token_counter = create_query_engine(verbose=False)
 
+    # adding translation in Italian?
+    if ADD_OCI_TRANSLATOR and GEN_MODEL == "OCI":
+        logging.info("Adding OCI Translator...")
+
+        oci_trans = create_translator()
+
 
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
@@ -109,11 +128,23 @@ if question := st.chat_input("Hello, how can I help you?"):
     try:
         logging.info("Calling RAG chain..")
 
-        with st.spinner("Waiting for answer from AI services..."):
+        with st.spinner("Waiting..."):
             tStart = time.time()
 
             # Here we call the entire chain !!!
             response = query_engine.query(question)
+
+            # should we translate?
+            if ADD_OCI_TRANSLATOR and GEN_MODEL == "OCI":
+                # check if the question ask to translate in italian
+                if WORD_TO_TRIGGER_TRANS.lower() in question.lower():
+                    logging.info("Translating in it...")
+                    # remember you have to pass a batch!
+                    response.response = (
+                        oci_trans.translate([response.response])
+                        .documents[0]
+                        .translated_text
+                    )
 
             tEla = time.time() - tStart
             logging.info(f"Elapsed time: {round(tEla, 1)} sec.")
@@ -131,12 +162,15 @@ if question := st.chat_input("Hello, how can I help you?"):
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
             if ADD_REFERENCES:
-                st.markdown(format_output(response))
+                # add reerences
+                output = format_output(response)
             else:
-                st.markdown(response)
+                output = response
+
+            st.markdown(output)
 
         # Add assistant response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": response})
+        st.session_state.messages.append({"role": "assistant", "content": output})
 
     except Exception as e:
         logging.error("An error occurred: " + str(e))

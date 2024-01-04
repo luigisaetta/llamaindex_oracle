@@ -2,11 +2,11 @@
 File name: oci_baai_reranker.py
 Author: Luigi Saetta
 Date created: 2023-12-30
-Date last modified: 2023-12-31
+Date last modified: 2024-01-02
 Python Version: 3.9
 
 Description:
-    This module provides the class to integrate a reranker
+    This module provides the base class to integrate a reranker
     deployed as Model Deployment in OCI Data Science 
     as reranker in llama-index
 
@@ -62,6 +62,7 @@ class OCIBAAIReranker:
         logging.info("Created OCI reranker client...")
         logging.info(f"Region: {region}...")
         logging.info(f"Deployment id: {deployment_id}...")
+        logging.info("")
 
     def _build_body(cls, input_list):
         """
@@ -127,6 +128,7 @@ class OCIBAAIReranker:
             response = self._compute_score(x)
 
             # return the texts in order of decreasing score
+            # this block of code has been inspired by the code of the cohere_reranker
             sorted_data = []
             if len(response) > 0:
                 data = [

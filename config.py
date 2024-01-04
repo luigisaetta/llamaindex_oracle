@@ -36,21 +36,22 @@ Warnings:
 #    "Crisidemocraziafakenews.pdf"
 # ]
 # INPUT_FILES = ["AI Generativa - casi d'uso per industry.pdf"]
-INPUT_FILES = [
-    "Fare_grafica_editoriale_Progettare_il_libro_storia,_teorie,_tecniche.pdf"
-]
+INPUT_FILES = ["covid19_treatment_guidelines.pdf"]
 
-# Cohere embeddings model
+# the ony one for now
+EMBED_MODEL_TYPE = "OCI"
+# Cohere embeddings model in OCI
 # for multilingual (es: italian) use this one
 EMBED_MODEL = "cohere.embed-multilingual-v3.0"
-# used for token counting
-TOKENIZER = "Cohere/command-nightly"
 # for english use this one
 # EMBED_MODEL = "cohere.embed-english-v3.0"
 
+# used for token counting
+TOKENIZER = "Cohere/command-nightly"
+
 # choose the Gen Model (Mistral to test Italian)
-# GEN_MODEL = "OCI"
-GEN_MODEL = "MISTRAL"
+GEN_MODEL = "OCI"
+# GEN_MODEL = "MISTRAL"
 
 # for retrieval
 TOP_K = 8
@@ -60,11 +61,11 @@ TOP_N = 4
 # for GenAI models
 MAX_TOKENS = 1024
 
-# if we want to add a reranker (Cohere for now)
+# if we want to add a reranker (Cohere or BAAI for now)
 ADD_RERANKER = True
 # RERANKER_MODEL = "COHERE"
 RERANKER_MODEL = "OCI_BAAI"
-RERANKER_ID = "ocid1.datasciencemodeldeployment.oc1.eu-frankfurt-1.amaaaaaangencdyahhhowbtx4blznvebldr73a5dv4m22xjiaux36x4v6sta"
+RERANKER_ID = "ocid1.datasciencemodeldeployment.oc1.eu-frankfurt-1.amaaaaaangencdyaulxbosgii6yajt2jdsrrvfbequkxt3mepz675uk3ui3q"
 
 # bits used to store embeddings
 # possible values: 32 or 64
@@ -77,3 +78,9 @@ ID_GEN_METHOD = "HASH"
 
 # UI
 ADD_REFERENCES = True
+
+# add translation in Italian
+ADD_OCI_TRANSLATOR = True
+# it will translate if the request asks for
+# for example: "...rispondi in italiano"
+WORD_TO_TRIGGER_TRANS = "italian"
