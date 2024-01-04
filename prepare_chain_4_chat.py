@@ -1,17 +1,18 @@
 """
-File name: prepare_chain.py
+File name: prepare_chain_4_chat.py
 Author: Luigi Saetta
-Date created: 2023-12-17
+Date created: 2023-01-04
 Date last modified: 2023-01-04
 Python Version: 3.9
 
 Description:
-    This module provides a function to initialize the RAG chain 
+    This module provides a function to initialize the RAG chain for chat
+    using the message history 
 
 Usage:
     Import this module into other scripts to use its functions. 
     Example:
-        from prepare_chain import create_query_engine
+        from prepare_chain_4_chat import create_chat_engine
 
 License:
     This code is released under the MIT License.
@@ -35,6 +36,7 @@ from tokenizers import Tokenizer
 from llama_index.callbacks import TokenCountingHandler
 from llama_index.postprocessor.cohere_rerank import CohereRerank
 from llama_index.llms import MistralAI
+from llama_index.memory import ChatMemoryBuffer
 
 import ads
 from ads.llm import GenerativeAIEmbeddings, GenerativeAI
@@ -134,7 +136,7 @@ def create_embedding_model(auth=None):
     return embed_model
 
 
-def create_query_engine(token_counter=None, verbose=False):
+def create_chat_engine(token_counter=None, verbose=False):
     logging.info("calling create_query_engine()...")
     # for now the only supported here...
     logging.info(f"using OCI {EMBED_MODEL} for embeddings...")
@@ -174,6 +176,12 @@ def create_query_engine(token_counter=None, verbose=False):
         vector_store=v_store, service_context=service_context
     )
 
+    cohere_tokenizer = Tokenizer.from_pretrained(TOKENIZER)
+
+    memory = ChatMemoryBuffer.from_defaults(
+        token_limit=2800, tokenizer_fn=cohere_tokenizer.encode
+    )
+
     # the whole chain (query string -> embed query -> retrieval -> context, query-> GenAI -> response)
     # is wrapped in the query engine
 
@@ -181,13 +189,22 @@ def create_query_engine(token_counter=None, verbose=False):
     if ADD_RERANKER == True:
         reranker = create_reranker(auth=api_keys_config)
 
-        query_engine = index.as_query_engine(
-            similarity_top_k=TOP_K, node_postprocessors=[reranker]
+        chat_engine = index.as_chat_engine(
+            chat_mode="condense_plus_context",
+            memory=memory,
+            verbose=False,
+            similarity_top_k=TOP_K,
+            node_postprocessors=[reranker],
         )
     else:
-        query_engine = index.as_query_engine(similarity_top_k=TOP_K)
+        chat_engine = index.as_chat_engine(
+            chat_mode="condense_plus_context",
+            memory=memory,
+            verbose=False,
+            similarity_top_k=TOP_K,
+        )
 
     # to add a blank line in the log
     logging.info("")
 
-    return query_engine, token_counter
+    return chat_engine, token_counter
