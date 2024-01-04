@@ -8,6 +8,7 @@ This repo contains all the work done on the development of RAG applications usin
 * Oracle OCI GenAI Service
 * Oracle OCI Embeddings
 * Cohere Reranking
+* Reranker deployed in OCI Data Science
 * OCI [ADS 2.9.1](https://accelerated-data-science.readthedocs.io/en/latest/user_guide/large_language_model/langchain_models.html) (with support for OCI GenAI)
 * llama-index
 
@@ -26,7 +27,7 @@ A very good introduction to what **Retrieval Augmented Generation** (RAG) is can
 * [demo1](./custom_vector_store_demo1.ipynb) This NB shows a demo where you get answers to questions on Oracle Database and new features in 23c
 * [Bot](./oracle_bot.py) powered by **Oracle Vector DB** and **OCI GenAI**
 * [demo3](./custom_vector_store_demo3.ipynb) shows how to add a Reranker to the RAG chain; I have used **Cohere**
-* [demo5](./rag_chain_demo5.ipynb) shows a full rag chain where rerranker is deployed on OCI DS
+* [demo5](./rag_chain_demo5.ipynb) shows a full rag chain where the reranker is deployed on OCI DS
 
 ## Setup
 See the wiki pages.
@@ -54,3 +55,10 @@ Code and functionalities can change, as a result of the feedbacks from customers
 * OCI ADS
 * Streamlit
 * Llama-index
+
+## prepare_chain and factory methods
+In the module prepare_chain are defined factory methods to create: embedder, llm, reranker...
+
+The philosophy is to make things simpler. So all the configuration are taken from config.py.
+
+If you want to change the ll, (or anything else) go to config.py. No params in the NBs
