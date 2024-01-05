@@ -2,7 +2,7 @@
 File name: prepare_chain.py
 Author: Luigi Saetta
 Date created: 2023-12-17
-Date last modified: 2023-01-04
+Date last modified: 2023-01-05
 Python Version: 3.9
 
 Description:
@@ -56,7 +56,7 @@ from config import (
     TOP_N,
 )
 
-from oci_utils import load_oci_config
+from oci_utils import load_oci_config, print_configuration
 from oracle_vector_db import OracleVectorStore
 from oci_baai_reranker import OCIBAAIReranker
 from oci_llama_reranker import OCILLamaReranker
@@ -136,12 +136,8 @@ def create_embedding_model(auth=None):
 
 def create_query_engine(token_counter=None, verbose=False):
     logging.info("calling create_query_engine()...")
-    # for now the only supported here...
-    logging.info(f"using OCI {EMBED_MODEL} for embeddings...")
-    logging.info(f"using {GEN_MODEL} as LLM...")
 
-    if ADD_RERANKER:
-        logging.info(f"using {RERANKER_MODEL} as reranker...")
+    print_configuration()
 
     # load security info needed for OCI
     oci_config = load_oci_config()
@@ -153,7 +149,6 @@ def create_query_engine(token_counter=None, verbose=False):
     embed_model = create_embedding_model(auth=api_keys_config)
 
     # this is the custom class to access Oracle DB as Vectore Store
-    logging.info("Using Oracle DB Vector Store...")
     v_store = OracleVectorStore(verbose=False)
 
     # this is to access OCI or MISTRAL GenAI service

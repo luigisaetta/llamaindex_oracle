@@ -56,7 +56,7 @@ GEN_MODEL = "OCI"
 # for retrieval
 TOP_K = 8
 # reranker
-TOP_N = 3
+TOP_N = 2
 
 # for GenAI models
 MAX_TOKENS = 1024
@@ -66,6 +66,9 @@ ADD_RERANKER = True
 # RERANKER_MODEL = "COHERE"
 RERANKER_MODEL = "OCI_BAAI"
 RERANKER_ID = "ocid1.datasciencemodeldeployment.oc1.eu-frankfurt-1.amaaaaaangencdyaulxbosgii6yajt2jdsrrvfbequkxt3mepz675uk3ui3q"
+
+# for chat engine
+CHAT_MODE = "condense_plus_context"
 
 # bits used to store embeddings
 # possible values: 32 or 64

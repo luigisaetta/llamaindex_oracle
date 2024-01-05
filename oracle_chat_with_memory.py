@@ -1,15 +1,15 @@
 """
-File name: oracle_bot.py
+File name: oracle_chat_with_memory.py
 Author: Luigi Saetta
 Date created: 2023-01-04
-Date last modified: 2023-01-04
+Date last modified: 2023-01-05
 Python Version: 3.9
 
 Description:
     This module provides the chatbot UI for the RAG demo 
 
 Usage:
-    run with: streamlit run oracle_chat_with_memory.py
+    streamlit run oracle_chat_with_memory.py
 
 License:
     This code is released under the MIT License.
@@ -40,13 +40,15 @@ from oci_translator import OCITranslator
 from config import ADD_REFERENCES, ADD_OCI_TRANSLATOR, GEN_MODEL, WORD_TO_TRIGGER_TRANS
 
 
+# when push the button
 def reset_conversation():
     st.session_state.messages = []
 
+    # stored in the session to enabe reset
     st.session_state.chat_engine, st.session_state.token_counter = create_chat_engine(
         verbose=False
     )
-
+    # clear message chat history
     st.session_state.chat_engine.reset()
 
 
@@ -84,6 +86,18 @@ def format_output(response):
     return output
 
 
+# here we capture the logic to decide if we need to add translation in Italian
+# for now, only with Cohere command
+def is_translation_requiered(question):
+    is_required = False
+    if ADD_OCI_TRANSLATOR and GEN_MODEL == "OCI":
+        # check if the question ask to translate in italian
+        if WORD_TO_TRIGGER_TRANS.lower() in question.lower():
+            is_required = True
+
+    return is_required
+
+
 #
 # Main
 #
@@ -93,7 +107,7 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-st.title("OCI Bot powered by Generative AI")
+st.title("OCI Chatbot powered by Generative AI")
 
 # Added reset button
 st.button("Clear Chat History", on_click=reset_conversation)
@@ -145,16 +159,14 @@ if question := st.chat_input("Hello, how can I help you?"):
             response = st.session_state.chat_engine.chat(question)
 
             # should we translate?
-            if ADD_OCI_TRANSLATOR and GEN_MODEL == "OCI":
-                # check if the question ask to translate in italian
-                if WORD_TO_TRIGGER_TRANS.lower() in question.lower():
-                    logging.info("Translating in it...")
-                    # remember you have to pass a batch!
-                    response.response = (
-                        oci_trans.translate([response.response])
-                        .documents[0]
-                        .translated_text
-                    )
+            if is_translation_requiered(question):
+                logging.info("Translating in it...")
+                # remember you have to pass a batch!
+                response.response = (
+                    oci_trans.translate([response.response])
+                    .documents[0]
+                    .translated_text
+                )
 
             tEla = time.time() - tStart
             logging.info(f"Elapsed time: {round(tEla, 1)} sec.")
@@ -170,7 +182,7 @@ if question := st.chat_input("Hello, how can I help you?"):
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
             if ADD_REFERENCES:
-                # add reerences
+                # add references
                 output = format_output(response)
             else:
                 output = response

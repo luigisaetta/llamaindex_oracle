@@ -24,8 +24,25 @@ Notes:
 Warnings:
     This module is in development, may change in future versions.
 """
-
+import logging
 import oci
+from config import (
+    EMBED_MODEL_TYPE,
+    EMBED_MODEL,
+    TOKENIZER,
+    GEN_MODEL,
+    MAX_TOKENS,
+    TOP_K,
+    ADD_RERANKER,
+    RERANKER_MODEL,
+    RERANKER_ID,
+    TOP_N,
+)
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 def load_oci_config():
@@ -35,3 +52,17 @@ def load_oci_config():
     oci_config = oci.config.from_file("~/.oci/config", "DEFAULT")
 
     return oci_config
+
+
+def print_configuration():
+    logging.info("------------------------")
+    logging.info("Config. used:")
+    logging.info(f"{EMBED_MODEL_TYPE} {EMBED_MODEL} for embeddings...")
+    logging.info("Using Oracle DB Vector Store...")
+    logging.info(f"Using {GEN_MODEL} as LLM...")
+
+    if ADD_RERANKER:
+        logging.info(f"Using {RERANKER_MODEL} as reranker...")
+
+    logging.info("------------------------")
+    logging.info("")

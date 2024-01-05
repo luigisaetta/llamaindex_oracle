@@ -56,9 +56,10 @@ from config import (
     RERANKER_MODEL,
     RERANKER_ID,
     TOP_N,
+    CHAT_MODE,
 )
 
-from oci_utils import load_oci_config
+from oci_utils import load_oci_config, print_configuration
 from oracle_vector_db import OracleVectorStore
 from oci_baai_reranker import OCIBAAIReranker
 from oci_llama_reranker import OCILLamaReranker
@@ -69,7 +70,7 @@ logging.basicConfig(
 )
 
 #
-# This module now expse directly the factory methods for all the single components (llm, etc)
+# This module now expose directly the factory methods for all the single components (llm, etc)
 # the philosophy of the factory methods  is that they're taking all the infos from the config
 # module... so as few parameter as possible
 #
@@ -125,9 +126,12 @@ def create_embedding_model(auth=None):
 
     if EMBED_MODEL_TYPE == "OCI":
         embed_model = GenerativeAIEmbeddings(
+            auth=auth,
             compartment_id=COMPARTMENT_OCID,
             model=EMBED_MODEL,
-            auth=auth,
+            # added since in this chat the input text for the query
+            # can be rather long (it is a condensed query, that takes also the history)
+            truncate="END",
             # Optionally you can specify keyword arguments for the OCI client
             # e.g. service_endpoint.
             client_kwargs={"service_endpoint": ENDPOINT},
@@ -137,13 +141,9 @@ def create_embedding_model(auth=None):
 
 
 def create_chat_engine(token_counter=None, verbose=False):
-    logging.info("calling create_query_engine()...")
+    logging.info("calling create_chat_engine()...")
     # for now the only supported here...
-    logging.info(f"using OCI {EMBED_MODEL} for embeddings...")
-    logging.info(f"using {GEN_MODEL} as LLM...")
-
-    if ADD_RERANKER:
-        logging.info(f"using {RERANKER_MODEL} as reranker...")
+    print_configuration()
 
     # load security info needed for OCI
     oci_config = load_oci_config()
@@ -155,7 +155,6 @@ def create_chat_engine(token_counter=None, verbose=False):
     embed_model = create_embedding_model(auth=api_keys_config)
 
     # this is the custom class to access Oracle DB as Vectore Store
-    logging.info("Using Oracle DB Vector Store...")
     v_store = OracleVectorStore(verbose=False)
 
     # this is to access OCI or MISTRAL GenAI service
@@ -176,8 +175,6 @@ def create_chat_engine(token_counter=None, verbose=False):
         vector_store=v_store, service_context=service_context
     )
 
-    cohere_tokenizer = Tokenizer.from_pretrained(TOKENIZER)
-
     memory = ChatMemoryBuffer.from_defaults(
         token_limit=2800, tokenizer_fn=cohere_tokenizer.encode
     )
@@ -190,15 +187,16 @@ def create_chat_engine(token_counter=None, verbose=False):
         reranker = create_reranker(auth=api_keys_config)
 
         chat_engine = index.as_chat_engine(
-            chat_mode="condense_plus_context",
+            chat_mode=CHAT_MODE,
             memory=memory,
             verbose=False,
             similarity_top_k=TOP_K,
             node_postprocessors=[reranker],
         )
     else:
+        # no reranker
         chat_engine = index.as_chat_engine(
-            chat_mode="condense_plus_context",
+            chat_mode=CHAT_MODE,
             memory=memory,
             verbose=False,
             similarity_top_k=TOP_K,

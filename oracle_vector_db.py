@@ -2,7 +2,7 @@
 File name: oracle_vector_db.py
 Author: Luigi Saetta
 Date created: 2023-12-15
-Date last modified: 2023-12-23
+Date last modified: 2023-01-05
 Python Version: 3.9
 
 Description:
@@ -52,7 +52,7 @@ from config_private import DB_USER, DB_PWD, DB_HOST_IP, DB_SERVICE
 
 # But for now we don't need to compute the id.. it is set in the driving
 # code when the doc list is created
-from config import ID_GEN_METHOD
+from config import ID_GEN_METHOD, EMBEDDINGS_BITS
 
 # Configure logging
 logging.basicConfig(
@@ -84,7 +84,12 @@ def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
     try:
         with oracledb.connect(user=DB_USER, password=DB_PWD, dsn=DSN) as connection:
             with connection.cursor() as cursor:
-                array_query = array.array("d", embed_query)
+                # 'f' single precision 'd' double precision
+                if EMBEDDINGS_BITS == 64:
+                    array_query = array.array("d", embed_query)
+                else:
+                    # 32 bits
+                    array_query = array.array("f", embed_query)
 
                 # changed select adding books (39/12/2023)
                 select = f"""select V.id, C.CHUNK, C.PAGE_NUM, 
@@ -141,23 +146,49 @@ def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
 
 
 def save_embeddings_in_db(embeddings, pages_id, connection):
+    tot_errors = 0
+
     with connection.cursor() as cursor:
         logging.info("Saving embeddings to DB...")
 
         for id, vector in zip(tqdm(pages_id), embeddings):
-            # to handle 64 bit correctly
-            input_array = array.array("d", vector)
+            # 'f' single precision 'd' double precision
+            if EMBEDDINGS_BITS == 64:
+                input_array = array.array("d", vector)
+            else:
+                # 32 bits
+                input_array = array.array("f", vector)
 
-            cursor.execute("insert into VECTORS values (:1, :2)", [id, input_array])
+            try:
+                # insert single embedding
+                cursor.execute("insert into VECTORS values (:1, :2)", [id, input_array])
+            except Exception as e:
+                logging.error("Error in save embeddings...")
+                logging.error(e)
+                tot_errors += 1
+
+    logging.info(f"Tot. errors in save_embeddings: {tot_errors}")
 
 
-def save_chunks_in_db(pages_text, pages_id, connection):
+def save_chunks_in_db(pages_text, pages_id, pages_num, book_id, connection):
+    tot_errors = 0
+
     with connection.cursor() as cursor:
         logging.info("Saving texts to DB...")
         cursor.setinputsizes(None, oracledb.DB_TYPE_CLOB)
 
-        for id, text in zip(tqdm(pages_id), pages_text):
-            cursor.execute("insert into CHUNKS values (:1, :2)", [id, text])
+        for id, text, page_num in zip(tqdm(pages_id), pages_text, pages_num):
+            try:
+                cursor.execute(
+                    "insert into CHUNKS (ID, CHUNK, PAGE_NUM, BOOK_ID) values (:1, :2, :3, :4)",
+                    [id, text, page_num, book_id],
+                )
+            except Exception as e:
+                logging.error("Error in save chunks...")
+                logging.error(e)
+                tot_errors += 1
+
+    logging.info(f"Tot. errors in save_chunks: {tot_errors}")
 
 
 #
@@ -246,7 +277,13 @@ class OracleVectorStore(VectorStore):
             ) as connection:
                 save_embeddings_in_db(embeddings, pages_id, connection)
 
-                save_chunks_in_db(pages_text, pages_id, connection)
+                save_chunks_in_db(
+                    pages_text,
+                    pages_id,
+                    page_num=None,
+                    book_id=None,
+                    connection=connection,
+                )
 
                 connection.commit()
 
