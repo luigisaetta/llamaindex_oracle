@@ -79,6 +79,7 @@ def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
     """
     tStart = time.time()
 
+    # build the DSN from data taken from config.py
     DSN = DB_HOST_IP + "/" + DB_SERVICE
 
     try:
@@ -94,7 +95,7 @@ def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
                 # changed select adding books (39/12/2023)
                 select = f"""select V.id, C.CHUNK, C.PAGE_NUM, 
                             ROUND(VECTOR_DISTANCE(V.VEC, :1, DOT), 3) as d,
-                            NAME 
+                            B.NAME 
                             from VECTORS V, CHUNKS C, BOOKS B
                             where C.ID = V.ID and
                             C.BOOK_ID = B.ID
@@ -266,21 +267,24 @@ class OracleVectorStore(VectorStore):
             embeddings = []
             pages_id = []
             pages_text = []
+            pages_num = []
 
             for key, node in self.node_dict.items():
                 pages_id.append(node.id_)
                 pages_text.append(node.text)
                 embeddings.append(node.embedding)
+                pages_num.append(node.metadata["page_label"])
 
             with oracledb.connect(
                 user=DB_USER, password=DB_PWD, dsn=self.DSN
             ) as connection:
                 save_embeddings_in_db(embeddings, pages_id, connection)
 
+                # TODO: where should I get book_id?
                 save_chunks_in_db(
                     pages_text,
                     pages_id,
-                    page_num=None,
+                    pages_num=pages_num,
                     book_id=None,
                     connection=connection,
                 )

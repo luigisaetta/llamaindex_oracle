@@ -205,7 +205,7 @@ def save_chunks_in_db(pages_text, pages_id, pages_num, book_id, connection):
     logging.info(f"Tot. errors in save_chunks: {tot_errors}")
 
 
-# with this function every book added to DB is register with a unique id
+# with this function every book added to DB is registered with a unique id
 def register_book(book_name, connection):
     with connection.cursor() as cursor:
         # get the new key
