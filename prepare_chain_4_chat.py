@@ -2,12 +2,12 @@
 File name: prepare_chain_4_chat.py
 Author: Luigi Saetta
 Date created: 2023-01-04
-Date last modified: 2023-01-04
+Date last modified: 2023-01-05
 Python Version: 3.9
 
 Description:
-    This module provides a function to initialize the RAG chain for chat
-    using the message history 
+    This module provides a function to initialize the RAG chain 
+    for chat using the message history 
 
 Usage:
     Import this module into other scripts to use its functions. 
@@ -52,11 +52,12 @@ from config import (
     GEN_MODEL,
     MAX_TOKENS,
     TOP_K,
+    TOP_N,
     ADD_RERANKER,
     RERANKER_MODEL,
     RERANKER_ID,
-    TOP_N,
     CHAT_MODE,
+    MEMORY_TOKEN_LIMIT,
 )
 
 from oci_utils import load_oci_config, print_configuration
@@ -142,13 +143,13 @@ def create_embedding_model(auth=None):
 
 def create_chat_engine(token_counter=None, verbose=False):
     logging.info("calling create_chat_engine()...")
+
     # for now the only supported here...
     print_configuration()
 
     # load security info needed for OCI
     oci_config = load_oci_config()
 
-    # need to do this way
     api_keys_config = ads.auth.api_keys(oci_config)
 
     # this is to embed the question
@@ -176,10 +177,11 @@ def create_chat_engine(token_counter=None, verbose=False):
     )
 
     memory = ChatMemoryBuffer.from_defaults(
-        token_limit=2800, tokenizer_fn=cohere_tokenizer.encode
+        token_limit=MEMORY_TOKEN_LIMIT, tokenizer_fn=cohere_tokenizer.encode
     )
 
-    # the whole chain (query string -> embed query -> retrieval -> context, query-> GenAI -> response)
+    # the whole chain (query string -> embed query -> retrieval ->
+    # reranker -> context, query-> GenAI -> response)
     # is wrapped in the query engine
 
     # here we could plug a reranker improving the quality

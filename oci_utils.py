@@ -60,9 +60,12 @@ def print_configuration():
     logging.info(f"{EMBED_MODEL_TYPE} {EMBED_MODEL} for embeddings...")
     logging.info("Using Oracle DB Vector Store...")
     logging.info(f"Using {GEN_MODEL} as LLM...")
+    logging.info("Retrieval parameters:")
+    logging.info(f"TOP_K: {TOP_K}")
 
     if ADD_RERANKER:
         logging.info(f"Using {RERANKER_MODEL} as reranker...")
+        logging.info(f"TOP_N: {TOP_N}")
 
     logging.info("------------------------")
     logging.info("")

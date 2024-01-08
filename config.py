@@ -36,7 +36,8 @@ Warnings:
 #    "Crisidemocraziafakenews.pdf"
 # ]
 # INPUT_FILES = ["AI Generativa - casi d'uso per industry.pdf"]
-INPUT_FILES = ["covid19_treatment_guidelines.pdf"]
+# INPUT_FILES = ["covid19_treatment_guidelines.pdf"]
+INPUT_FILES = ["rag_review.pdf"]
 
 # the ony one for now
 EMBED_MODEL_TYPE = "OCI"
@@ -49,6 +50,13 @@ EMBED_MODEL = "cohere.embed-multilingual-v3.0"
 # used for token counting
 TOKENIZER = "Cohere/command-nightly"
 
+# to eneble splitting pages in chunks
+# in token
+ENABLE_CHUNKING = True
+# reduced to 400 otherwise it doesn't wotk (??)
+MAX_CHUNK_SIZE = 400
+CHUNK_OVERLAP = 20
+
 # choose the Gen Model (Mistral to test Italian)
 GEN_MODEL = "OCI"
 # GEN_MODEL = "MISTRAL"
@@ -56,7 +64,7 @@ GEN_MODEL = "OCI"
 # for retrieval
 TOP_K = 8
 # reranker
-TOP_N = 2
+TOP_N = 4
 
 # for GenAI models
 MAX_TOKENS = 1024
@@ -69,6 +77,7 @@ RERANKER_ID = "ocid1.datasciencemodeldeployment.oc1.eu-frankfurt-1.amaaaaaangenc
 
 # for chat engine
 CHAT_MODE = "condense_plus_context"
+MEMORY_TOKEN_LIMIT = 2800
 
 # bits used to store embeddings
 # possible values: 32 or 64
