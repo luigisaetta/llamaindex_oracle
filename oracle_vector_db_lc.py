@@ -1,7 +1,36 @@
-#
-# Tentative implementation for LangChain
-# last modified: 17/01/2024
-#
+"""
+File name: oracle_vector_db_lc.py
+Author: Luigi Saetta
+Date created: 2024-01-17
+Date last modified: 2024-01-20
+Python Version: 3.9
+
+Description:
+    This module provides the class to integrate Oracle
+    DB Vector Store 
+    in LangChain
+
+Inspired by:
+    
+
+Usage:
+    Import this module into other scripts to use its functions. 
+    Example:
+        from oracle_vector_db_lc import OracleVectorStore
+        v_store = OracleVectorStore(embedding_function=embed_model.embed_query,
+                            verbose=True)
+
+License:
+    This code is released under the MIT License.
+
+Notes:
+    This is a part of a set of demo showing how to use Oracle Vector DB,
+    OCI GenAI service, Oracle GenAI Embeddings, to build a RAG solution,
+    where all he data (text + embeddings) are stored in Oracle DB 23c 
+
+Warnings:
+    This module is in development, may change in future versions.
+"""
 from __future__ import annotations
 
 import time
@@ -44,7 +73,9 @@ logging.basicConfig(
 #
 # supporting functions
 #
-def oracle_query(embed_query: List[float], top_k: int = 3, verbose=False):
+def oracle_query(
+    embed_query: List[float], top_k: int = 3, verbose=False
+) -> List[Document]:
     """
     Executes a query against an Oracle database to find the top_k closest vectors to the given embedding.
 
