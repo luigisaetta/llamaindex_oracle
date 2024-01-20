@@ -50,7 +50,7 @@ EMBED_MODEL = "cohere.embed-multilingual-v3.0"
 # used for token counting
 TOKENIZER = "Cohere/command-nightly"
 
-# to eneble splitting pages in chunks
+# to enable splitting pages in chunks
 # in token
 ENABLE_CHUNKING = True
 # reduced to 400 otherwise it doesn't wotk (??)
@@ -64,7 +64,7 @@ GEN_MODEL = "OCI"
 # for retrieval
 TOP_K = 8
 # reranker
-TOP_N = 4
+TOP_N = 3
 
 # for GenAI models
 MAX_TOKENS = 1024

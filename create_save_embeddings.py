@@ -44,7 +44,6 @@ from llama_index.node_parser import SentenceSplitter
 import oracledb
 import ads
 
-import tokenizers
 from tokenizers import Tokenizer
 
 # This is the wrapper for GenAI Embeddings
@@ -192,9 +191,12 @@ def remove_short_pages(pages, threshold):
 
 
 def check_tokenization_length(tokenizer, batch):
-    # check tokenization
+    """
+    Check that the number of token dosn't exceed a threshold
+    It is an hard check (fails)
+    """
     for text in tqdm(batch):
-        assert len(tokenizer.encode(text)) < MAX_CHUNK_SIZE
+        assert len(tokenizer.encode(text)) <= MAX_CHUNK_SIZE
     logging.info("Tokenization OK...")
 
 
@@ -205,6 +207,7 @@ def compute_embeddings(embed_model, nodes_text):
     for i in tqdm(range(0, len(nodes_text), BATCH_SIZE)):
         batch = nodes_text[i : i + BATCH_SIZE]
 
+        # added this check to avoid texts too long
         check_tokenization_length(cohere_tokenizer, batch)
 
         # here we compute embeddings for a batch
