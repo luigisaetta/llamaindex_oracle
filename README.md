@@ -30,7 +30,7 @@ A very good introduction to what **Retrieval Augmented Generation** (RAG) is can
 * [Bot](./oracle_bot.py) powered by **Oracle Vector DB** and **OCI GenAI**
 * [demo3](./custom_vector_store_demo3.ipynb) shows how to add a Reranker to the RAG chain; I have used **Cohere**
 * [demo5](./rag_chain_demo5.ipynb) shows a full rag chain where the reranker is deployed on OCI DS
-* [LangChain](./demo_langchain2.ipynb) demo based on Oracel Vector DB and langChain
+* [LangChain](./demo_langchain2.ipynb) demo based on Oracle Vector DB and LangChain
 
 ## Setup
 See the wiki pages.
