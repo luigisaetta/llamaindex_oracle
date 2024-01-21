@@ -23,12 +23,14 @@ A very good introduction to what **Retrieval Augmented Generation** (RAG) is can
 * Reranking to improve retrieval
 * How to show references (documents used for the response generation)
 * (30/12) Added reranker implemented as OCI Model Deployment
+* (20/01) Added implementation of Vector Store for LangChain and demo
 
 ## Demos
 * [demo1](./custom_vector_store_demo1.ipynb) This NB shows a demo where you get answers to questions on Oracle Database and new features in 23c
 * [Bot](./oracle_bot.py) powered by **Oracle Vector DB** and **OCI GenAI**
 * [demo3](./custom_vector_store_demo3.ipynb) shows how to add a Reranker to the RAG chain; I have used **Cohere**
 * [demo5](./rag_chain_demo5.ipynb) shows a full rag chain where the reranker is deployed on OCI DS
+* [LangChain](./demo_langchain2.ipynb) demo based on Oracel Vector DB and langChain
 
 ## Setup
 See the wiki pages.
@@ -36,7 +38,7 @@ See the wiki pages.
 ## Loading data
 * You can use [create_save_embeddings](./create_save_embeddings.py) to load all the data in the Oracle DB schema.
 * You can launch it using the script [load_books](./load_books.sh).
-* The list of files to be loaded is specified in config.py
+* The list of files to be loaded is specified in the file config.py
 
 You need to have pdf files in the same directory.
 
@@ -44,6 +46,7 @@ You need to have pdf files in the same directory.
 OCI GenAI and Oracle Vector DB are new features both in **Limited Availability**. 
 
 Customers can easily enter in the LA programs.
+
 To test these functionalities you need to enrol in the LA programs and install the proper versions of software libraries.
 
 Code and functionalities can change, as a result of the feedbacks from customers.
