@@ -3,13 +3,13 @@
 
 ![screenshot](./screenshot.png)
 
-This repo contains all the work done on the development of RAG applications using:
+This repository contains all the work done on the development of RAG applications using:
 * Oracle Vector DB
 * Oracle OCI GenAI Service
 * Oracle OCI Embeddings
 * Cohere Reranking
 * Reranker deployed in OCI Data Science
-* OCI [ADS 2.9.1](https://accelerated-data-science.readthedocs.io/en/latest/user_guide/large_language_model/langchain_models.html) (with support for OCI GenAI)
+* OCI [ADS 2.10.0](https://accelerated-data-science.readthedocs.io/en/latest/user_guide/large_language_model/langchain_models.html) (with support for OCI GenAI)
 * llama-index
 * LangChain
 
@@ -44,7 +44,8 @@ You need to have pdf files in the same directory.
 
 ## Limited Availability
 * (News) OCI GenAI is GA since 23/01/2024, see updated docs for setup
-Oracle AI Vector Search (Vector DB) is a new feature in Oracle DB 23c, in **Limited Availability**. 
+
+Oracle **AI Vector Search** (Vector DB) is a new feature in Oracle DB 23c, in **Limited Availability**. 
 
 Customers can easily enter in the LA programs.
 
