@@ -43,7 +43,7 @@ See the wiki pages.
 You need to have pdf files in the same directory.
 
 ## Limited Availability
-* (News) OCI GenAI is GA since 23/01/2024, see updated docs for setup
+* (News) **OCI GenAI is General Availability** since 23/01/2024, see updated docs for setup
 
 Oracle **AI Vector Search** (Vector DB) is a new feature in Oracle DB 23c, in **Limited Availability**. 
 
