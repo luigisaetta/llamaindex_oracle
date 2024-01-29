@@ -43,7 +43,8 @@ See the wiki pages.
 You need to have pdf files in the same directory.
 
 ## Limited Availability
-OCI GenAI and Oracle Vector DB are new features both in **Limited Availability**. 
+* (News) OCI GenAI is GA since 23/01/2024, see updated docs for setup
+Oracle AI Vector Search (Vector DB) is a new feature in Oracle DB 23c, in **Limited Availability**. 
 
 Customers can easily enter in the LA programs.
 
@@ -52,10 +53,15 @@ To test these functionalities you need to enrol in the LA programs and install t
 Code and functionalities can change, as a result of the feedbacks from customers.
 
 ## Releases used for the demo (WIP)
-* OCI ADS 2.9.1
+* OCI 2.119.1
+* OCI ADS 2.10.0
+* LangChain >= 0.1.4
+* LangChain Community >= 0.0.16
+* Llama-index >= 0.9.37.post1
 * Oracle Database 23c (23.4) free edition with Vector DB
 
 ## Libraries
+* OCI Python SDK
 * OCI ADS
 * Streamlit
 * Llama-index
