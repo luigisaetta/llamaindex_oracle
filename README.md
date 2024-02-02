@@ -34,7 +34,7 @@ A very good introduction to what **Retrieval Augmented Generation** (RAG) is can
 * [LangChain](./demo_langchain2.ipynb) demo based on Oracle Vector DB and LangChain
 
 ## Setup
-See the wiki pages.
+See the [wiki](https://github.com/luigisaetta/llamaindex_oracle/wiki/Setup-of-the-Python-conda-environment) pages.
 
 ## Loading data
 * You can use [create_save_embeddings](./create_save_embeddings.py) to load all the data in the Oracle DB schema.
