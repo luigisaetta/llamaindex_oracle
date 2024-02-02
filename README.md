@@ -1,14 +1,14 @@
-# Integrate Oracle Vector DB and OCI GenAI with Llama-index and LangChain
+# Integrate Oracle AI Vector DB and OCI GenAI with Llama-index and LangChain
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ![screenshot](./screenshot.png)
 
 This repository contains all the work done on the development of RAG applications using:
-* Oracle Vector DB
+* Oracle AI Vector DB (Search)
 * Oracle OCI GenAI Service
 * Oracle OCI Embeddings
 * Cohere Reranking
-* Reranker deployed in OCI Data Science
+* Reranker models deployed in OCI Data Science
 * OCI [ADS 2.10.0](https://accelerated-data-science.readthedocs.io/en/latest/user_guide/large_language_model/langchain_models.html) (with support for OCI GenAI)
 * llama-index
 * [LangChain](https://python.langchain.com/docs/get_started/introduction)
@@ -19,7 +19,7 @@ A very good introduction to what **Retrieval Augmented Generation** (RAG) is can
 ## Features
 * basic (12/2023) integration between **Oracle DB Vector Store (23c)** and **llama-index**
 * All documents stored in an Oracle DB
-* Oracle DB used for semantic search
+* Oracle AI Vector Search used for Semantic Search
 * Reranking to improve retrieval
 * How to show references (documents used for the response generation)
 * (30/12) Added reranker implemented as OCI Model Deployment
