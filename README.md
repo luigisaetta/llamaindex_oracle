@@ -11,7 +11,7 @@ This repository contains all the work done on the development of RAG application
 * Reranker deployed in OCI Data Science
 * OCI [ADS 2.10.0](https://accelerated-data-science.readthedocs.io/en/latest/user_guide/large_language_model/langchain_models.html) (with support for OCI GenAI)
 * llama-index
-* LangChain
+* [LangChain](https://python.langchain.com/docs/get_started/introduction)
 
 ## What is RAG?
 A very good introduction to what **Retrieval Augmented Generation** (RAG) is can be found [here](https://www.oracle.com/artificial-intelligence/generative-ai/retrieval-augmented-generation-rag/)
