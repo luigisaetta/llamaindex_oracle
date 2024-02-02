@@ -31,6 +31,7 @@ Notes:
 Warnings:
     This module is in development, may change in future versions.
 """
+
 from __future__ import annotations
 
 import time
