@@ -34,6 +34,7 @@ A very good introduction to what **Retrieval Augmented Generation** (RAG) is can
 * [demo5](./rag_chain_demo5.ipynb) shows a full rag chain where the reranker is deployed on OCI DS
 * [LangChain](./demo_langchain2.ipynb) demo based on Oracle Vector DB and LangChain
 * [finding duplicates](./find_duplicates.ipynb)
+* [Knowledge assistant full demo](./run_oracle_chat_with_memory.sh)
 
 ## Setup
 See the [wiki](https://github.com/luigisaetta/llamaindex_oracle/wiki/Setup-of-the-Python-conda-environment) pages.
