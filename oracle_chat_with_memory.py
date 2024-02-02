@@ -23,6 +23,7 @@ Warnings:
     This module is in development, may change in future versions.
 """
 
+import os
 import logging
 import time
 import streamlit as st
@@ -107,7 +108,10 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-st.title("OCI Chatbot powered by Generative AI")
+# added 9/01/2024
+# st.set_page_config(layout="wide")
+
+st.title("OCI Assistant powered by Generative AI and Oracle Vector DB")
 
 # Added reset button
 st.button("Clear Chat History", on_click=reset_conversation)
