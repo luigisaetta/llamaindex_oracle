@@ -91,8 +91,8 @@ ID_GEN_METHOD = "HASH"
 # UI
 ADD_REFERENCES = True
 
-# add translation in Italian
-ADD_OCI_TRANSLATOR = True
+# add eventually translation in Italian
+ADD_OCI_TRANSLATOR = False
 # it will translate if the request asks for
 # for example: "...rispondi in italiano"
 WORD_TO_TRIGGER_TRANS = "italian"
