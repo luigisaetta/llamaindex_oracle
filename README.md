@@ -5,13 +5,13 @@
 ![screenshot](./screenshot.png)
 
 This repository contains all the work done on the development of RAG applications using:
-* Oracle AI Vector DB (Search)
+* [Oracle AI Vector Search](https://www.oracle.com/news/announcement/ocw-integrated-vector-database-augments-generative-ai-2023-09-19/)
 * Oracle OCI GenAI Service
 * Oracle OCI Embeddings
 * Cohere Reranking
 * Reranker models deployed in OCI Data Science
 * OCI [ADS 2.10.0](https://accelerated-data-science.readthedocs.io/en/latest/user_guide/large_language_model/langchain_models.html) (with support for OCI GenAI)
-* llama-index
+* [llama-index](https://docs.llamaindex.ai/en/stable/)
 * [LangChain](https://python.langchain.com/docs/get_started/introduction)
 
 ## What is RAG?
@@ -54,11 +54,11 @@ Oracle **AI Vector Search** (Vector DB) is a new feature in Oracle DB 23c, in **
 
 Customers can easily enter in the LA programs.
 
-To test these functionalities you need to enrol in the LA programs and install the proper versions of software libraries.
+To test these functionalities you need to enroll in the LA programs and install the proper versions of software libraries.
 
-Code and functionalities can change, as a result of the feedbacks from customers.
+Code and functionalities can change, as a result of feedbacks from customers.
 
-## Releases used for the demo (WIP)
+## Releases used for the demo
 * OCI 2.119.1
 * OCI ADS 2.10.0
 * LangChain >= 0.1.4
@@ -66,12 +66,26 @@ Code and functionalities can change, as a result of the feedbacks from customers
 * Llama-index >= 0.9.37.post1
 * Oracle Database 23c (23.4) free edition with Vector DB
 
+You can install a complete Python environment using the instructions in the **setup* section of the wiki.
+
 ## Libraries
 * OCI Python SDK
 * OCI ADS
 * Streamlit
 * Llama-index
 * LangChain
+
+## Documentation
+* [OCI GenAI in LangChain](https://python.langchain.com/docs/integrations/llms/oci_generative_ai)
+
+## Embeddings
+One of the key pieces in RAG is the Retrieval module. 
+To use the **DB Vector Store** you need an **Embeddings Model**: a model that does the magic of transforming text in vectors, 
+capturing the content and the semantic of the text.
+The Embeddings Model used in these demos is [Cohere Embeds V3](https://txt.cohere.com/introducing-embed-v3/), provided from **OCI GenAI** service.
+
+With few changes you can switch to use an Open Source model. But you need to have the computational power to run it.
+
 
 ## prepare_chain and factory methods
 In the module prepare_chain are defined factory methods to create: embedder, llm, reranker...
