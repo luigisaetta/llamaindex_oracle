@@ -6,10 +6,10 @@
 
 This repository contains all the work done on the development of RAG applications using:
 * [Oracle AI Vector Search](https://www.oracle.com/news/announcement/ocw-integrated-vector-database-augments-generative-ai-2023-09-19/)
-* Oracle OCI GenAI Service
+* Oracle OCI [GenAI Service](https://docs.public.oneportal.content.oci.oraclecloud.com/en-us/iaas/Content/generative-ai/home.htm)
 * Oracle OCI Embeddings
 * Cohere Reranking
-* Reranker models deployed in OCI Data Science
+* [Reranker](https://github.com/luigisaetta/llamaindex_oracle/blob/main/deploy_reranker.ipynb) models deployed in OCI Data Science
 * OCI [ADS 2.10.0](https://accelerated-data-science.readthedocs.io/en/latest/user_guide/large_language_model/langchain_models.html) (with support for OCI GenAI)
 * [llama-index](https://docs.llamaindex.ai/en/stable/)
 * [LangChain](https://python.langchain.com/docs/get_started/introduction)
@@ -66,7 +66,7 @@ Code and functionalities can change, as a result of feedbacks from customers.
 * Llama-index >= 0.9.37.post1
 * Oracle Database 23c (23.4) free edition with Vector DB
 
-You can install a complete Python environment using the instructions in the **setup* section of the wiki.
+You can install a complete Python environment using the instructions in the **Setup* section of the Wiki.
 
 ## Libraries
 * OCI Python SDK
@@ -87,7 +87,7 @@ The Embeddings Model used in these demos is [Cohere Embeds V3](https://txt.coher
 With few changes you can switch to use an Open Source model. But you need to have the computational power to run it.
 
 
-## prepare_chain and factory methods
+## Factory methods
 In the module prepare_chain are defined factory methods to create: embedder, llm, reranker...
 
 The philosophy is to make things simpler. So all the configuration are taken from config.py.
