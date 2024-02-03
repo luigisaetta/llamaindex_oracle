@@ -51,7 +51,6 @@ from typing import (
 
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
-from langchain_core.utils import xor_args
 from langchain_core.vectorstores import VectorStore
 from langchain_community.vectorstores.utils import maximal_marginal_relevance
 
@@ -165,7 +164,8 @@ class OracleVectorStore(VectorStore):
     def __init__(
         self,
         collection_name: str = _LANGCHAIN_DEFAULT_COLLECTION_NAME,
-        embedding_function: Optional[Embeddings] = None,
+        # modified to make it mandatory
+        embedding_function: Embeddings = None,
         persist_directory: Optional[str] = None,
         client_settings: Optional[Any] = None,
         collection_metadata: Optional[Dict] = None,
