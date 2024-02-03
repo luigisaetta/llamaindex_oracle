@@ -1,7 +1,7 @@
 # Integrate Oracle AI Vector DB and OCI GenAI with Llama-index and LangChain
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-## This is the UI of the **Knowledge Assistant** you can build using following demoes/examples. 
+## The UI of the **Knowledge Assistant** you can build using following examples. 
 ![screenshot](./screenshot.png)
 
 This repository contains all the work done on the development of RAG applications using:
