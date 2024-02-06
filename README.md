@@ -14,6 +14,8 @@ This repository contains all the work done on the development of RAG application
 * [llama-index](https://docs.llamaindex.ai/en/stable/)
 * [LangChain](https://python.langchain.com/docs/get_started/introduction)
 
+In the [Video demos](https://github.com/luigisaetta/llamaindex_oracle/wiki/Video-demos) section of the Wiki you'll find some video of the demo.
+
 ## What is RAG?
 A very good introduction to what **Retrieval Augmented Generation** (RAG) is can be found [here](https://www.oracle.com/artificial-intelligence/generative-ai/retrieval-augmented-generation-rag/)
 
