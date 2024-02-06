@@ -36,7 +36,6 @@ A very good introduction to what **Retrieval Augmented Generation** (RAG) is can
 * [LangChain](./demo_langchain2.ipynb) demo based on Oracle Vector DB and LangChain
 * [finding duplicates](./find_duplicates.ipynb)
 * [Knowledge assistant full demo](./run_oracle_chat_with_memory.sh)
-* [![Knowledge Assistant Video](https://i.stack.imgur.com/Vp2cE.png)]](./knowledge_assistant_on_db_short.mp4)
 
 ## Setup
 See the [wiki](https://github.com/luigisaetta/llamaindex_oracle/wiki/Setup-of-the-Python-conda-environment) pages.
