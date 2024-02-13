@@ -28,6 +28,7 @@ A very good introduction to what **Retrieval Augmented Generation** (RAG) is can
 * (30/12) Added reranker implemented as OCI Model Deployment
 * (20/01) Added implementation of Vector Store for LangChain and demo
 * Finding duplicates in the documentation
+* (13/02) Porting to llamaindex 0.10.0 (wip...)
 
 ## Demos
 * [demo1](./custom_vector_store_demo1.ipynb) This NB shows a demo where you get answers to questions on Oracle Database and new features in 23c
