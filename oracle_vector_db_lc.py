@@ -35,6 +35,9 @@ Warnings:
 from __future__ import annotations
 
 import time
+from tqdm import tqdm
+import hashlib
+
 import array
 
 import logging
@@ -63,6 +66,9 @@ from config_private import DB_USER, DB_PWD, DB_HOST_IP, DB_SERVICE
 # But for now we don't need to compute the id.. it is set in the driving
 # code when the doc list is created
 from config import ID_GEN_METHOD, EMBEDDINGS_BITS
+
+# to create embeddings in batch
+BATCH_SIZE = 20
 
 # Configure logging
 logging.basicConfig(
@@ -179,6 +185,39 @@ class OracleVectorStore(VectorStore):
 
         self.override_relevance_score_fn = relevance_score_fn
 
+    def generate_id(self, txts_list):
+        """
+        get a list of text and generate the id
+
+        return: list of id
+        """
+
+        # this way generated hashing the page
+        if ID_GEN_METHOD == "HASH":
+            # now I support only this
+            logging.info("Hashing to compute id...")
+            nodes_ids = []
+            for doc in tqdm(txts_list):
+                encoded_text = doc.text.encode()
+                hash_object = hashlib.sha256(encoded_text)
+                hash_hex = hash_object.hexdigest()
+                nodes_ids.append(hash_hex)
+
+        return nodes_ids
+
+    # take the list of txts and return a list of embeddings vector
+    def compute_embeddings(self, txts_list):
+        embeddings = []
+        for i in tqdm(range(0, len(txts_list), BATCH_SIZE)):
+            batch = txts_list[i : i + BATCH_SIZE]
+
+            # here we compute embeddings for a batch
+            embeddings_batch = self._embedding_function(batch)
+            # add to the final list
+            embeddings.extend(embeddings_batch)
+
+        return embeddings
+
     def add_texts(
         self,
         texts: Iterable[str],
@@ -195,6 +234,20 @@ class OracleVectorStore(VectorStore):
         Returns:
             List of ids from adding the texts into the vectorstore.
         """
+
+        # get ids
+        vet_ids = self.generate_id(self, texts)
+
+        # 1. Embeds all the texts
+        vet_embeddings = self.compute_embeddings(self, texts)
+
+        # metadata={"file_name": row[4], "page_label": row[2]}
+        file_name_list = [metadata["file_name"] for metadata in metadatas]
+        page_label_list = [metadata["page_label"] for metadata in metadatas]
+
+        # now store everything in the DB
+
+        # TODO
         raise NotImplementedError("add_texts method must be implemented...")
 
     @property

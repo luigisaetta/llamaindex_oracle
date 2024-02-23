@@ -37,7 +37,7 @@ Warnings:
 # ]
 # INPUT_FILES = ["AI Generativa - casi d'uso per industry.pdf"]
 # INPUT_FILES = ["covid19_treatment_guidelines.pdf"]
-INPUT_FILES = ["rag_review.pdf"]
+INPUT_FILES = ["feynman_vol1.pdf"]
 
 # the ony one for now
 EMBED_MODEL_TYPE = "OCI"
@@ -52,14 +52,16 @@ TOKENIZER = "Cohere/command-nightly"
 
 # to enable splitting pages in chunks
 # in token
-ENABLE_CHUNKING = True
-# reduced to 400 otherwise it doesn't wotk (??)
+# modified 05/02/2024
+ENABLE_CHUNKING = False
+# reduced to 400 otherwise it doesn't work (??)
 MAX_CHUNK_SIZE = 400
 CHUNK_OVERLAP = 20
 
 # choose the Gen Model (Mistral to test Italian)
 GEN_MODEL = "OCI"
 # GEN_MODEL = "MISTRAL"
+# GEN_MODEL = "LLAMA2"
 
 # for retrieval
 TOP_K = 8

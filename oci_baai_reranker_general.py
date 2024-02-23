@@ -1,14 +1,14 @@
 """
-File name: oci_baai_reranker_ipzs.py
+File name: oci_baai_reranker.py
 Author: Luigi Saetta
 Date created: 2024-01-31
-Date last modified: 2024-01-31
+Date last modified: 2024-02-23
 Python Version: 3.9
 
 Description:
     This module provides the base class to integrate a reranker
     deployed as Model Deployment in OCI Data Science 
-    as reranker in llama-index. Special version for IPZS PoC
+    as reranker in llama-index.
 
 Inspired by:
     https://github.com/run-llama/llama_index/blob/main/llama_index/postprocessor/cohere_rerank.py

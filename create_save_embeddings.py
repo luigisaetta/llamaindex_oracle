@@ -2,7 +2,7 @@
 File name: create_save_embeddings.py
 Author: Luigi Saetta
 Date created: 2023-12-14
-Date last modified: 2023-01-08
+Date last modified: 2023-02-05
 Python Version: 3.9
 
 Description:
@@ -207,9 +207,6 @@ def compute_embeddings(embed_model, nodes_text):
     for i in tqdm(range(0, len(nodes_text), BATCH_SIZE)):
         batch = nodes_text[i : i + BATCH_SIZE]
 
-        # added this check to avoid texts too long
-        check_tokenization_length(cohere_tokenizer, batch)
-
         # here we compute embeddings for a batch
         embeddings_batch = embed_model.embed_documents(batch)
         # add to the final list
@@ -322,6 +319,9 @@ embed_model = GenerativeAIEmbeddings(
     compartment_id=COMPARTMENT_OCID,
     model=EMBED_MODEL,
     auth=api_keys_config,
+    # LS (05/02/2024) modified to avoid chunking and eerrors if tokens > 512
+    # its is a choice to simplify
+    truncate="END",
     # Optionally you can specify keyword arguments for the OCI client, e.g. service_endpoint.
     client_kwargs={"service_endpoint": ENDPOINT},
 )

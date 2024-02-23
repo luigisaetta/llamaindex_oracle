@@ -2,7 +2,7 @@
 File name: prepare_chain_4_chat.py
 Author: Luigi Saetta
 Date created: 2023-01-04
-Date last modified: 2023-01-05
+Date last modified: 2023-02-08
 Python Version: 3.9
 
 Description:
@@ -19,7 +19,7 @@ License:
 
 Notes:
     This is a part of a set of demo showing how to use Oracle Vector DB,
-    OCI GenAI service, Oracle GenAI Embeddings, to buil a RAG solution,
+    OCI GenAI service, Oracle GenAI Embeddings, to build a RAG solution,
     where all he data (text + embeddings) are stored in Oracle DB 23c 
 
     Now it can use for LLM: OCI, Mistral 8x7B
@@ -37,6 +37,8 @@ from llama_index.callbacks import TokenCountingHandler
 from llama_index.postprocessor.cohere_rerank import CohereRerank
 from llama_index.llms import MistralAI
 from llama_index.memory import ChatMemoryBuffer
+from llama_index.llms import ChatMessage, MessageRole
+from llama_index.prompts import ChatPromptTemplate
 
 import ads
 from ads.llm import GenerativeAIEmbeddings, GenerativeAI
@@ -77,6 +79,13 @@ logging.basicConfig(
 #
 
 
+def display_prompt_dict(prompts_dict):
+    for k, p in prompts_dict.items():
+        text_md = f"**Prompt Key**: {k}<br>" f"**Text:** <br>"
+        logging.info(text_md)
+        logging.info(p.get_template())
+
+
 #
 # enables to plug different GEN_MODELS
 # for now: OCI, MISTRAL
@@ -86,6 +95,16 @@ def create_llm(auth=None):
 
     if GEN_MODEL == "OCI":
         llm = GenerativeAI(
+            auth=auth,
+            compartment_id=COMPARTMENT_OCID,
+            max_tokens=MAX_TOKENS,
+            # added 23/12 to avoid error for context too long
+            truncate="END",
+            client_kwargs={"service_endpoint": ENDPOINT},
+        )
+    if GEN_MODEL == "LLAMA":
+        llm = GenerativeAI(
+            name="meta.llama-2-70b-chat",
             auth=auth,
             compartment_id=COMPARTMENT_OCID,
             max_tokens=MAX_TOKENS,
@@ -110,6 +129,7 @@ def create_reranker(auth=None, verbose=False):
     if RERANKER_MODEL == "COHERE":
         reranker = CohereRerank(api_key=COHERE_API_KEY, top_n=TOP_N)
 
+    # reranker model deployed as MD in OCI DS
     if RERANKER_MODEL == "OCI_BAAI":
         baai_reranker = OCIBAAIReranker(
             auth=auth, deployment_id=RERANKER_ID, region="eu-frankfurt-1"
@@ -182,11 +202,36 @@ def create_chat_engine(token_counter=None, verbose=False):
 
     # the whole chain (query string -> embed query -> retrieval ->
     # reranker -> context, query-> GenAI -> response)
-    # is wrapped in the query engine
+    # is wrapped in the chat engine
 
     # here we could plug a reranker improving the quality
     if ADD_RERANKER == True:
         reranker = create_reranker(auth=api_keys_config)
+
+        # TODO
+        # if GEN_MODEL == "LLAMA" I should plug
+        # another prompt
+        # prompt = f"<s> [INST] {prompt} [/INST] "
+        chat_text_qa_msgs = [
+            ChatMessage(
+                role=MessageRole.SYSTEM,
+                content=(
+                    "Always answer the question, even if the context isn't helpful."
+                ),
+            ),
+            ChatMessage(
+                role=MessageRole.USER,
+                content=(
+                    "Context information is below.\n"
+                    "---------------------\n"
+                    "{context_str}\n"
+                    "---------------------\n"
+                    "Given the context information and not prior knowledge, "
+                    "answer the question: {query_str}\n"
+                ),
+            ),
+        ]
+        text_qa_template = ChatPromptTemplate(chat_text_qa_msgs)
 
         chat_engine = index.as_chat_engine(
             chat_mode=CHAT_MODE,
@@ -195,6 +240,7 @@ def create_chat_engine(token_counter=None, verbose=False):
             similarity_top_k=TOP_K,
             node_postprocessors=[reranker],
         )
+
     else:
         # no reranker
         chat_engine = index.as_chat_engine(
