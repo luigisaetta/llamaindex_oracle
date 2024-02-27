@@ -2,7 +2,7 @@
 File name: oracle_chat_with_memory.py
 Author: Luigi Saetta
 Date created: 2023-01-04
-Date last modified: 2023-01-05
+Date last modified: 2023-02-27
 Python Version: 3.9
 
 Description:
@@ -45,12 +45,15 @@ from config import ADD_REFERENCES, ADD_OCI_TRANSLATOR, GEN_MODEL, WORD_TO_TRIGGE
 def reset_conversation():
     st.session_state.messages = []
 
-    # stored in the session to enabe reset
+    # stored in the session to enable reset
     st.session_state.chat_engine, st.session_state.token_counter = create_chat_engine(
         verbose=False
     )
     # clear message chat history
     st.session_state.chat_engine.reset()
+
+    # reset # questions counter
+    st.session_state.question_count = 0
 
 
 # defined here to avoid import of streamlit in other module
@@ -89,7 +92,7 @@ def format_output(response):
 
 # here we capture the logic to decide if we need to add translation in Italian
 # for now, only with Cohere command
-def is_translation_requiered(question):
+def is_translation_required(question):
     is_required = False
     if ADD_OCI_TRANSLATOR and GEN_MODEL == "OCI":
         # check if the question ask to translate in italian
@@ -163,7 +166,7 @@ if question := st.chat_input("Hello, how can I help you?"):
             response = st.session_state.chat_engine.chat(question)
 
             # should we translate?
-            if is_translation_requiered(question):
+            if is_translation_required(question):
                 logging.info("Translating in it...")
                 # remember you have to pass a batch!
                 response.response = (
@@ -173,7 +176,12 @@ if question := st.chat_input("Hello, how can I help you?"):
                 )
 
             tEla = time.time() - tStart
-            logging.info(f"Elapsed time: {round(tEla, 1)} sec.")
+
+        # count the number of questions done
+        st.session_state.question_count += 1
+        logging.info("")
+        logging.info(f"Question n. {st.session_state.question_count}")
+        logging.info(f"Elapsed time: {round(tEla, 1)} sec.")
 
         # display num. of input/output token
         # count are incrementals
