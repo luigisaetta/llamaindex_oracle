@@ -61,7 +61,8 @@ CHUNK_OVERLAP = 100
 # choose the Gen Model (Mistral to test Italian)
 GEN_MODEL = "OCI"
 # GEN_MODEL = "MISTRAL"
-# GEN_MODEL = "LLAMA2"
+# must be LLAM and not LLAMA2
+# GEN_MODEL = "LLAMA"
 
 # for retrieval
 TOP_K = 8
