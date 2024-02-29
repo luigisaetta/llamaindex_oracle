@@ -2,7 +2,7 @@
 File name: prepare_chain_4_chat.py
 Author: Luigi Saetta
 Date created: 2023-01-04
-Date last modified: 2023-02-08
+Date last modified: 2023-02-27
 Python Version: 3.9
 
 Description:
@@ -53,6 +53,7 @@ from config import (
     TOKENIZER,
     GEN_MODEL,
     MAX_TOKENS,
+    TEMPERATURE,
     TOP_K,
     TOP_N,
     ADD_RERANKER,
@@ -88,7 +89,7 @@ def display_prompt_dict(prompts_dict):
 
 #
 # enables to plug different GEN_MODELS
-# for now: OCI, MISTRAL
+# for now: OCI, LLAMA2 70 B, MISTRAL
 #
 def create_llm(auth=None):
     llm = None
@@ -98,6 +99,7 @@ def create_llm(auth=None):
             auth=auth,
             compartment_id=COMPARTMENT_OCID,
             max_tokens=MAX_TOKENS,
+            temperature=TEMPERATURE,
             # added 23/12 to avoid error for context too long
             truncate="END",
             client_kwargs={"service_endpoint": ENDPOINT},
@@ -108,6 +110,7 @@ def create_llm(auth=None):
             auth=auth,
             compartment_id=COMPARTMENT_OCID,
             max_tokens=MAX_TOKENS,
+            temperature=TEMPERATURE,
             # added 23/12 to avoid error for context too long
             truncate="END",
             client_kwargs={"service_endpoint": ENDPOINT},
@@ -115,8 +118,8 @@ def create_llm(auth=None):
     if GEN_MODEL == "MISTRAL":
         llm = MistralAI(
             api_key=MISTRAL_API_KEY,
-            model="mistral-small",
-            temperature=0.2,
+            model="mistral-medium",
+            temperature=TEMPERATURE,
             max_tokens=MAX_TOKENS,
         )
 
@@ -211,27 +214,7 @@ def create_chat_engine(token_counter=None, verbose=False):
         # TODO
         # if GEN_MODEL == "LLAMA" I should plug
         # another prompt
-        # prompt = f"<s> [INST] {prompt} [/INST] "
-        chat_text_qa_msgs = [
-            ChatMessage(
-                role=MessageRole.SYSTEM,
-                content=(
-                    "Always answer the question, even if the context isn't helpful."
-                ),
-            ),
-            ChatMessage(
-                role=MessageRole.USER,
-                content=(
-                    "Context information is below.\n"
-                    "---------------------\n"
-                    "{context_str}\n"
-                    "---------------------\n"
-                    "Given the context information and not prior knowledge, "
-                    "answer the question: {query_str}\n"
-                ),
-            ),
-        ]
-        text_qa_template = ChatPromptTemplate(chat_text_qa_msgs)
+        # prompt = f"[INST] {prompt} [/INST] "
 
         chat_engine = index.as_chat_engine(
             chat_mode=CHAT_MODE,

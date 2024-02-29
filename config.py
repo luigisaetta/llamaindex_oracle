@@ -37,7 +37,7 @@ Warnings:
 # ]
 # INPUT_FILES = ["AI Generativa - casi d'uso per industry.pdf"]
 # INPUT_FILES = ["covid19_treatment_guidelines.pdf"]
-INPUT_FILES = ["feynman_vol1.pdf"]
+INPUT_FILES = ["the-side-effects-of-metformin-a-review.pdf"]
 
 # the ony one for now
 EMBED_MODEL_TYPE = "OCI"
@@ -48,15 +48,15 @@ EMBED_MODEL = "cohere.embed-multilingual-v3.0"
 # EMBED_MODEL = "cohere.embed-english-v3.0"
 
 # used for token counting
-TOKENIZER = "Cohere/command-nightly"
+TOKENIZER = "Cohere/Cohere-embed-multilingual-v3.0"
 
 # to enable splitting pages in chunks
 # in token
 # modified 05/02/2024
 ENABLE_CHUNKING = False
-# reduced to 400 otherwise it doesn't work (??)
-MAX_CHUNK_SIZE = 400
-CHUNK_OVERLAP = 20
+# set to 1000
+MAX_CHUNK_SIZE = 600
+CHUNK_OVERLAP = 100
 
 # choose the Gen Model (Mistral to test Italian)
 GEN_MODEL = "OCI"
@@ -70,11 +70,13 @@ TOP_N = 3
 
 # for GenAI models
 MAX_TOKENS = 1024
+# added 29/02
+TEMPERATURE = 0.1
 
 # if we want to add a reranker (Cohere or BAAI for now)
 ADD_RERANKER = True
-# RERANKER_MODEL = "COHERE"
-RERANKER_MODEL = "OCI_BAAI"
+RERANKER_MODEL = "COHERE"
+# RERANKER_MODEL = "OCI_BAAI"
 RERANKER_ID = "ocid1.datasciencemodeldeployment.oc1.eu-frankfurt-1.amaaaaaangencdyaulxbosgii6yajt2jdsrrvfbequkxt3mepz675uk3ui3q"
 
 # for chat engine
