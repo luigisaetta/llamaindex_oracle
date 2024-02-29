@@ -94,27 +94,24 @@ def display_prompt_dict(prompts_dict):
 def create_llm(auth=None):
     llm = None
 
+    # to reduce code (29/02)
+    # common params for all OCI genAI models
+    common_oci_params = {
+        "auth": auth,
+        "compartment_id": COMPARTMENT_OCID,
+        "max_tokens": MAX_TOKENS,
+        "temperature": TEMPERATURE,
+        "truncate": "END",
+        "client_kwargs": {"service_endpoint": ENDPOINT},
+    }
+
     if GEN_MODEL == "OCI":
         llm = GenerativeAI(
-            auth=auth,
-            compartment_id=COMPARTMENT_OCID,
-            max_tokens=MAX_TOKENS,
-            temperature=TEMPERATURE,
-            # added 23/12 to avoid error for context too long
-            truncate="END",
-            client_kwargs={"service_endpoint": ENDPOINT},
+            name="cohere.command",
+            **common_oci_params,
         )
     if GEN_MODEL == "LLAMA":
-        llm = GenerativeAI(
-            name="meta.llama-2-70b-chat",
-            auth=auth,
-            compartment_id=COMPARTMENT_OCID,
-            max_tokens=MAX_TOKENS,
-            temperature=TEMPERATURE,
-            # added 23/12 to avoid error for context too long
-            truncate="END",
-            client_kwargs={"service_endpoint": ENDPOINT},
-        )
+        llm = GenerativeAI(name="meta.llama-2-70b-chat", **common_oci_params)
     if GEN_MODEL == "MISTRAL":
         llm = MistralAI(
             api_key=MISTRAL_API_KEY,
