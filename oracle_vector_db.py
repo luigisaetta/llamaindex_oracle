@@ -77,20 +77,17 @@ def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
     Returns:
         VectorStoreQueryResult: Object containing the query results, including nodes, similarities, and ids.
     """
-    tStart = time.time()
+    start_time = time.time()
 
     # build the DSN from data taken from config.py
-    DSN = DB_HOST_IP + "/" + DB_SERVICE
+    DSN = f"{DB_HOST_IP}/{DB_SERVICE}"
 
     try:
         with oracledb.connect(user=DB_USER, password=DB_PWD, dsn=DSN) as connection:
             with connection.cursor() as cursor:
                 # 'f' single precision 'd' double precision
-                if EMBEDDINGS_BITS == 64:
-                    array_query = array.array("d", embed_query)
-                else:
-                    # 32 bits
-                    array_query = array.array("f", embed_query)
+                array_type = "d" if EMBEDDINGS_BITS == 64 else "f"
+                array_query = array.array(array_type, embed_query)
 
                 # changed select adding books (39/12/2023)
                 select = f"""select V.id, C.CHUNK, C.PAGE_NUM, 
@@ -103,20 +100,17 @@ def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
                             FETCH FIRST {top_k} ROWS ONLY"""
 
                 if verbose:
-                    logging.info(f"select: {select}")
+                    logging.info(f"SQL Query: {select}")
 
                 cursor.execute(select, [array_query])
-
                 rows = cursor.fetchall()
 
-                result_nodes = []
-                node_ids = []
-                similarities = []
+                result_nodes, node_ids, similarities = [], [], []
 
                 # prepare output
                 for row in rows:
-                    clob_pointer = row[1]
-                    full_clob_data = clob_pointer.read()
+                    # row[1] is a clob
+                    full_clob_data = row[1].read()
 
                     # 29/12: added book_name to metadata
                     result_nodes.append(
@@ -131,17 +125,16 @@ def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
 
     except Exception as e:
         logging.error(f"Error occurred in oracle_query: {e}")
-
         return None
 
     q_result = VectorStoreQueryResult(
         nodes=result_nodes, similarities=similarities, ids=node_ids
     )
 
-    tEla = time.time() - tStart
+    elapsed_time = time.time() - start_time
 
     if verbose:
-        logging.info(f"Query duration: {round(tEla, 1)} sec.")
+        logging.info(f"Query duration: {round(elapsed_time, 1)} sec.")
 
     return q_result
 
@@ -203,7 +196,7 @@ class OracleVectorStore(VectorStore):
 
     stores_text: bool = True
     verbose: bool = False
-    DSN = DB_HOST_IP + "/" + DB_SERVICE
+    DSN = f"{DB_HOST_IP}/{DB_SERVICE}"
 
     def __init__(self, verbose=False) -> None:
         """Init params."""
