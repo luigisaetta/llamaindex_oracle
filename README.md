@@ -89,6 +89,11 @@ The Embeddings Model used in these demos is [Cohere Embeds V3](https://txt.coher
 
 With few changes you can switch to use an Open Source model. But you need to have the computational power to run it.
 
+## Observability
+(02/03/2024) I have added integration with Arize Phoenix (Phoenix traces).
+To enable tracing in config.py you must set ADD_PHX_TRACING = True
+
+In case of troubles with installing OpenTelemetry a quick solution is to disable it.
 
 ## Factory methods
 In the module prepare_chain are defined factory methods to create: embedder, llm, reranker...
