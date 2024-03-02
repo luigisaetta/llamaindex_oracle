@@ -71,7 +71,8 @@ from oci_baai_reranker import OCIBAAIReranker
 from oci_llama_reranker import OCILLamaReranker
 
 # added phx tracing
-import phoenix as px
+if ADD_PHX_TRACING:
+    import phoenix as px
 
 # Configure logging
 logging.basicConfig(

@@ -57,12 +57,13 @@ from config_private import DB_USER, DB_PWD, DB_HOST_IP, DB_SERVICE
 from config import ID_GEN_METHOD, EMBEDDINGS_BITS, ADD_PHX_TRACING
 
 # Phoenix tracing
-from opentelemetry import trace as trace_api
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk import trace as trace_sdk
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
-from openinference.semconv.trace import SpanAttributes
-from opentelemetry.trace import Status, StatusCode, SpanKind
+if ADD_PHX_TRACING:
+    from opentelemetry import trace as trace_api
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.sdk import trace as trace_sdk
+    from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+    from openinference.semconv.trace import SpanAttributes
+    from opentelemetry.trace import Status, StatusCode, SpanKind
 
 #
 # to add Phoenix tracing
