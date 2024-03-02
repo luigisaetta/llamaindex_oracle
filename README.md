@@ -74,9 +74,11 @@ You can install a complete Python environment using the instructions in the **Se
 ## Libraries
 * OCI Python SDK
 * OCI ADS
+* oracledb
 * Streamlit
 * Llama-index
 * LangChain
+* Arize-AI/phoenix for Observability and Tracing
 
 ## Documentation
 * [OCI GenAI in LangChain](https://python.langchain.com/docs/integrations/llms/oci_generative_ai)
