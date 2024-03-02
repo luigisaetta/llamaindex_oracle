@@ -2,7 +2,7 @@
 File name: config.py
 Author: Luigi Saetta
 Date created: 2023-12-15
-Date last modified: 2023-12-29
+Date last modified: 2023-03-02
 Python Version: 3.9
 
 Description:
@@ -92,6 +92,10 @@ EMBEDDINGS_BITS = 64
 # ID generation: LLINDEX, HASH, BOOK_PAGE_NUM
 # define the method to generate ID
 ID_GEN_METHOD = "HASH"
+
+# Tracing
+ADD_PHX_TRACING = True
+PHX_PORT = "7777"
 
 # UI
 ADD_REFERENCES = True

@@ -33,6 +33,8 @@ import time
 from tqdm import tqdm
 import array
 from typing import List, Any, Dict
+from contextlib import contextmanager
+
 from llama_index.vector_stores.types import (
     VectorStore,
     VectorStoreQuery,
@@ -52,7 +54,29 @@ from config_private import DB_USER, DB_PWD, DB_HOST_IP, DB_SERVICE
 
 # But for now we don't need to compute the id.. it is set in the driving
 # code when the doc list is created
-from config import ID_GEN_METHOD, EMBEDDINGS_BITS
+from config import ID_GEN_METHOD, EMBEDDINGS_BITS, ADD_PHX_TRACING
+
+# Phoenix tracing
+from opentelemetry import trace as trace_api
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk import trace as trace_sdk
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from openinference.semconv.trace import SpanAttributes
+from opentelemetry.trace import Status, StatusCode, SpanKind
+
+#
+# to add Phoenix tracing
+#
+tracer = None
+
+if ADD_PHX_TRACING:
+    endpoint = "http://127.0.0.1:7777/v1/traces"
+    tracer_provider = trace_sdk.TracerProvider()
+    trace_api.set_tracer_provider(tracer_provider)
+    tracer_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(endpoint)))
+    tracer = trace_api.get_tracer(__name__)
+    OPENINFERENCE_SPAN_KIND = "openinference.span.kind"
+
 
 # Configure logging
 logging.basicConfig(
@@ -63,6 +87,25 @@ logging.basicConfig(
 #
 # supporting functions
 #
+
+
+# added to handle the tracing in oracle_query
+@contextmanager
+def optional_tracing(span_name):
+    if ADD_PHX_TRACING:
+        with tracer.start_as_current_span(name=span_name) as span:
+            # to set the span kind (avoid unknown)
+            span.set_attribute(OPENINFERENCE_SPAN_KIND, "Retriever")
+            span.set_attribute(SpanAttributes.TOOL_NAME, "oracle_vector_store")
+            span.set_attribute(SpanAttributes.TOOL_DESCRIPTION, "Oracle DB 23c free")
+            span.set_status(Status(StatusCode.OK))
+
+            yield span
+    else:
+        # provide a neutral context if no context is required
+        yield None
+
+
 def oracle_query(embed_query: List[float], top_k: int = 2, verbose=False):
     """
     Executes a query against an Oracle database to find the top_k closest vectors to the given embedding.
@@ -147,11 +190,8 @@ def save_embeddings_in_db(embeddings, pages_id, connection):
 
         for id, vector in zip(tqdm(pages_id), embeddings):
             # 'f' single precision 'd' double precision
-            if EMBEDDINGS_BITS == 64:
-                input_array = array.array("d", vector)
-            else:
-                # 32 bits
-                input_array = array.array("f", vector)
+            array_type = "d" if EMBEDDINGS_BITS == 64 else "f"
+            input_array = array.array(array_type, vector)
 
             try:
                 # insert single embedding
@@ -243,9 +283,13 @@ class OracleVectorStore(VectorStore):
         if self.verbose:
             logging.info("---> Calling query on DB")
 
-        return oracle_query(
-            query.query_embedding, top_k=query.similarity_top_k, verbose=self.verbose
-        )
+        # added to handle, optionally, Phoenix tracing
+        with optional_tracing("oracle_vector_db"):
+            return oracle_query(
+                query.query_embedding,
+                top_k=query.similarity_top_k,
+                verbose=self.verbose,
+            )
 
     def persist(self, persist_path=None, fs=None) -> None:
         """

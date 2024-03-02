@@ -2,7 +2,7 @@
 File name: prepare_chain_4_chat.py
 Author: Luigi Saetta
 Date created: 2023-01-04
-Date last modified: 2023-02-27
+Date last modified: 2023-03-02
 Python Version: 3.9
 
 Description:
@@ -28,8 +28,10 @@ Warnings:
     This module is in development, may change in future versions.
 """
 
+import os
 import logging
 
+import llama_index
 from llama_index import VectorStoreIndex, ServiceContext
 from llama_index.callbacks import CallbackManager
 from tokenizers import Tokenizer
@@ -37,8 +39,6 @@ from llama_index.callbacks import TokenCountingHandler
 from llama_index.postprocessor.cohere_rerank import CohereRerank
 from llama_index.llms import MistralAI
 from llama_index.memory import ChatMemoryBuffer
-from llama_index.llms import ChatMessage, MessageRole
-from llama_index.prompts import ChatPromptTemplate
 
 import ads
 from ads.llm import GenerativeAIEmbeddings, GenerativeAI
@@ -61,12 +61,17 @@ from config import (
     RERANKER_ID,
     CHAT_MODE,
     MEMORY_TOKEN_LIMIT,
+    ADD_PHX_TRACING,
+    PHX_PORT,
 )
 
 from oci_utils import load_oci_config, print_configuration
 from oracle_vector_db import OracleVectorStore
 from oci_baai_reranker import OCIBAAIReranker
 from oci_llama_reranker import OCILLamaReranker
+
+# added phx tracing
+import phoenix as px
 
 # Configure logging
 logging.basicConfig(
@@ -92,6 +97,13 @@ def display_prompt_dict(prompts_dict):
 # for now: OCI, LLAMA2 70 B, MISTRAL
 #
 def create_llm(auth=None):
+    model_list = ["OCI", "LLAMA", "MISTRAL"]
+
+    if GEN_MODEL not in model_list:
+        raise ValueError(
+            f"The value {GEN_MODEL} is not supported. Choose a value in {model_list} for the GenAI model."
+        )
+
     llm = None
 
     # to reduce code (29/02)
@@ -124,6 +136,13 @@ def create_llm(auth=None):
 
 
 def create_reranker(auth=None, verbose=False):
+    model_list = ["COHERE", "OCI_BAAI"]
+
+    if RERANKER_MODEL not in model_list:
+        raise ValueError(
+            f"The value {RERANKER_MODEL} is not supported. Choose a value in {model_list} for the Reranker model."
+        )
+
     reranker = None
 
     if RERANKER_MODEL == "COHERE":
@@ -143,6 +162,13 @@ def create_reranker(auth=None, verbose=False):
 
 
 def create_embedding_model(auth=None):
+    model_list = ["OCI"]
+
+    if EMBED_MODEL_TYPE not in model_list:
+        raise ValueError(
+            f"The value {EMBED_MODEL_TYPE} is not supported. Choose a value in {model_list} for the Embeddings model."
+        )
+
     embed_model = None
 
     if EMBED_MODEL_TYPE == "OCI":
@@ -151,7 +177,7 @@ def create_embedding_model(auth=None):
             compartment_id=COMPARTMENT_OCID,
             model=EMBED_MODEL,
             # added since in this chat the input text for the query
-            # can be rather long (it is a condensed query, that takes also the history)
+            # can be rather long (it is a condensed query, that takes also the history
             truncate="END",
             # Optionally you can specify keyword arguments for the OCI client
             # e.g. service_endpoint.
@@ -161,11 +187,20 @@ def create_embedding_model(auth=None):
     return embed_model
 
 
+#
+# the entire chain is built here
+#
 def create_chat_engine(token_counter=None, verbose=False):
     logging.info("calling create_chat_engine()...")
 
     # for now the only supported here...
     print_configuration()
+
+    if ADD_PHX_TRACING:
+        os.environ["PHOENIX_PORT"] = PHX_PORT
+        os.environ["PHOENIX_HOST"] = "0.0.0.0"
+        px.launch_app()
+        llama_index.set_global_handler("arize_phoenix")
 
     # load security info needed for OCI
     oci_config = load_oci_config()
@@ -207,11 +242,6 @@ def create_chat_engine(token_counter=None, verbose=False):
     # here we could plug a reranker improving the quality
     if ADD_RERANKER == True:
         reranker = create_reranker(auth=api_keys_config)
-
-        # TODO
-        # if GEN_MODEL == "LLAMA" I should plug
-        # another prompt
-        # prompt = f"[INST] {prompt} [/INST] "
 
         chat_engine = index.as_chat_engine(
             chat_mode=CHAT_MODE,

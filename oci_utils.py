@@ -38,6 +38,7 @@ from config import (
     RERANKER_MODEL,
     RERANKER_ID,
     TOP_N,
+    ADD_PHX_TRACING,
 )
 
 # Configure logging
@@ -67,6 +68,8 @@ def print_configuration():
     if ADD_RERANKER:
         logging.info(f"Using {RERANKER_MODEL} as reranker...")
         logging.info(f"TOP_N: {TOP_N}")
+    if ADD_PHX_TRACING:
+        logging.info(f"Enabled observability with Phoenix tracing...")
 
     logging.info("------------------------")
     logging.info("")
