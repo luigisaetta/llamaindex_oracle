@@ -2,7 +2,7 @@
 File name: oracle_vector_db.py
 Author: Luigi Saetta
 Date created: 2023-12-15
-Date last modified: 2023-01-05
+Date last modified: 2024-03-02
 Python Version: 3.9
 
 Description:
