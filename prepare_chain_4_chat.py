@@ -2,7 +2,7 @@
 File name: prepare_chain_4_chat.py
 Author: Luigi Saetta
 Date created: 2023-01-04
-Date last modified: 2023-03-02
+Date last modified: 2023-03-03
 Python Version: 3.9
 
 Description:
@@ -63,6 +63,7 @@ from config import (
     MEMORY_TOKEN_LIMIT,
     ADD_PHX_TRACING,
     PHX_PORT,
+    PHX_HOST,
 )
 
 from oci_utils import load_oci_config, print_configuration
@@ -82,7 +83,7 @@ logging.basicConfig(
 #
 # This module now expose directly the factory methods for all the single components (llm, etc)
 # the philosophy of the factory methods  is that they're taking all the infos from the config
-# module... so as few parameter as possible
+# module... so as few parameters as possible
 #
 
 
@@ -98,6 +99,7 @@ def display_prompt_dict(prompts_dict):
 # for now: OCI, LLAMA2 70 B, MISTRAL
 #
 def create_llm(auth=None):
+    # this check is to avoid mistakes in config.py
     model_list = ["OCI", "LLAMA", "MISTRAL"]
 
     if GEN_MODEL not in model_list:
@@ -178,7 +180,7 @@ def create_embedding_model(auth=None):
             compartment_id=COMPARTMENT_OCID,
             model=EMBED_MODEL,
             # added since in this chat the input text for the query
-            # can be rather long (it is a condensed query, that takes also the history
+            # can be rather long (it is a condensed query, that takes also the history)
             truncate="END",
             # Optionally you can specify keyword arguments for the OCI client
             # e.g. service_endpoint.
@@ -199,7 +201,7 @@ def create_chat_engine(token_counter=None, verbose=False):
 
     if ADD_PHX_TRACING:
         os.environ["PHOENIX_PORT"] = PHX_PORT
-        os.environ["PHOENIX_HOST"] = "0.0.0.0"
+        os.environ["PHOENIX_HOST"] = PHX_HOST
         px.launch_app()
         llama_index.set_global_handler("arize_phoenix")
 
@@ -241,25 +243,22 @@ def create_chat_engine(token_counter=None, verbose=False):
     # is wrapped in the chat engine
 
     # here we could plug a reranker improving the quality
+    node_postprocessors = None
+
     if ADD_RERANKER == True:
         reranker = create_reranker(auth=api_keys_config)
 
-        chat_engine = index.as_chat_engine(
-            chat_mode=CHAT_MODE,
-            memory=memory,
-            verbose=False,
-            similarity_top_k=TOP_K,
-            node_postprocessors=[reranker],
-        )
-
+        node_postprocessors = [reranker]
     else:
-        # no reranker
-        chat_engine = index.as_chat_engine(
-            chat_mode=CHAT_MODE,
-            memory=memory,
-            verbose=False,
-            similarity_top_k=TOP_K,
-        )
+        pass
+
+    chat_engine = index.as_chat_engine(
+        chat_mode=CHAT_MODE,
+        memory=memory,
+        verbose=False,
+        similarity_top_k=TOP_K,
+        node_postprocessors=node_postprocessors,
+    )
 
     # to add a blank line in the log
     logging.info("")

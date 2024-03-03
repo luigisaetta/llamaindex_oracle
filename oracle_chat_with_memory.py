@@ -2,7 +2,7 @@
 File name: oracle_chat_with_memory.py
 Author: Luigi Saetta
 Date created: 2023-01-04
-Date last modified: 2023-02-27
+Date last modified: 2024-03-03
 Python Version: 3.9
 
 Description:
@@ -23,7 +23,6 @@ Warnings:
     This module is in development, may change in future versions.
 """
 
-import os
 import logging
 import time
 import streamlit as st
@@ -33,12 +32,11 @@ import prepare_chain_4_chat
 
 import ads
 from oci_utils import load_oci_config
-from oci_translator import OCITranslator
 
 #
 # Configs
 #
-from config import ADD_REFERENCES, ADD_OCI_TRANSLATOR, GEN_MODEL, WORD_TO_TRIGGER_TRANS
+from config import ADD_REFERENCES
 
 
 # when push the button
@@ -68,15 +66,6 @@ def create_chat_engine(verbose=False):
     return chat_engine, token_counter
 
 
-@st.cache_resource
-def create_translator():
-    oci_config = load_oci_config()
-
-    oci_trans = OCITranslator(oci_config=oci_config)
-
-    return oci_trans
-
-
 # to format output with references
 def format_output(response):
     output = response.response
@@ -88,18 +77,6 @@ def format_output(response):
             output += str(node.metadata).replace("{", "").replace("}", "") + "  \n"
 
     return output
-
-
-# here we capture the logic to decide if we need to add translation in Italian
-# for now, only with Cohere command
-def is_translation_required(question):
-    is_required = False
-    if ADD_OCI_TRANSLATOR and GEN_MODEL == "OCI":
-        # check if the question ask to translate in italian
-        if WORD_TO_TRIGGER_TRANS.lower() in question.lower():
-            is_required = True
-
-    return is_required
 
 
 #
@@ -135,12 +112,6 @@ with st.spinner("Initializing RAG chain..."):
         verbose=False
     )
 
-    # adding translation in Italian?
-    if ADD_OCI_TRANSLATOR and GEN_MODEL == "OCI":
-        logging.info("Adding OCI Translator...")
-
-        oci_trans = create_translator()
-
 
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
@@ -160,28 +131,18 @@ if question := st.chat_input("Hello, how can I help you?"):
         logging.info("Calling RAG chain..")
 
         with st.spinner("Waiting..."):
-            tStart = time.time()
+            time_start = time.time()
 
             # Here we call the entire chain !!!
             response = st.session_state.chat_engine.chat(question)
 
-            # should we translate?
-            if is_translation_required(question):
-                logging.info("Translating in it...")
-                # remember you have to pass a batch!
-                response.response = (
-                    oci_trans.translate([response.response])
-                    .documents[0]
-                    .translated_text
-                )
-
-            tEla = time.time() - tStart
+            time_elapsed = time.time() - time_start
 
         # count the number of questions done
         st.session_state.question_count += 1
         logging.info("")
         logging.info(f"Question n. {st.session_state.question_count}")
-        logging.info(f"Elapsed time: {round(tEla, 1)} sec.")
+        logging.info(f"Elapsed time: {round(time_elapsed, 1)} sec.")
 
         # display num. of input/output token
         # count are incrementals
