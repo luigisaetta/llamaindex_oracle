@@ -66,7 +66,7 @@ Code and functionalities can change, as a result of feedbacks from customers.
 * OCI ADS 2.10.0
 * LangChain >= 0.1.4
 * LangChain Community >= 0.0.16
-* Llama-index >= 0.9.37.post1
+* Llama-index >= 0.9.37.post1 < 0.10
 * Oracle Database 23c (23.4) free edition with Vector DB
 
 You can install a complete Python environment using the instructions in the **Setup* section of the Wiki.
